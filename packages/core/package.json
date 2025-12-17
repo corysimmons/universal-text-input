@@ -1,6 +1,6 @@
 {
   "name": "universal-text-input",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Universal TextInput component for React Native and Web with consistent styling and theming",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
