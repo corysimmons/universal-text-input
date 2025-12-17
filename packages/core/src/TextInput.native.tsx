@@ -39,7 +39,7 @@ export function TextInput({
       onChangeText={onChangeText}
       onFocus={onFocus}
       onBlur={onBlur}
-      style={[{ height: multiline ? 100 : 44 }, style]}
+      style={[{ width: '100%', height: multiline ? 100 : 44 }, style]}
       editable={editable}
       secureTextEntry={secureTextEntry}
       multiline={multiline}

@@ -55,7 +55,6 @@ export function TextInput({
     margin: 0,
     border: `1px solid ${getColor(theme.borderColor, theme.borderColorDark, theme.disabledBorderColor, theme.disabledBorderColorDark)}`,
     width: '100%',
-    maxWidth: '16rem',
     height: theme.height,
     borderRadius: theme.borderRadius,
     fontFamily: theme.fontFamily,
