@@ -13,24 +13,24 @@ public class UniversalTextInputModule: Module {
         view.setPlaceholder(placeholder)
       }
 
-      Prop("editable") { (view: UniversalTextInputView, editable: Bool) in
-        view.setEditable(editable)
+      Prop("editable") { (view: UniversalTextInputView, editable: Bool?) in
+        view.setEditable(editable != false)
       }
 
-      Prop("secureTextEntry") { (view: UniversalTextInputView, secure: Bool) in
-        view.setSecureTextEntry(secure)
+      Prop("secureTextEntry") { (view: UniversalTextInputView, secure: Bool?) in
+        view.setSecureTextEntry(secure == true)
       }
 
-      Prop("multiline") { (view: UniversalTextInputView, multiline: Bool) in
-        view.setMultiline(multiline)
+      Prop("multiline") { (view: UniversalTextInputView, multiline: Bool?) in
+        view.setMultiline(multiline == true)
       }
 
-      Prop("autoFocus") { (view: UniversalTextInputView, autoFocus: Bool) in
-        view.setAutoFocus(autoFocus)
+      Prop("autoFocus") { (view: UniversalTextInputView, autoFocus: Bool?) in
+        view.setAutoFocus(autoFocus == true)
       }
 
-      Prop("dark") { (view: UniversalTextInputView, dark: Bool) in
-        view.setDarkMode(dark)
+      Prop("dark") { (view: UniversalTextInputView, dark: Bool?) in
+        view.setDarkMode(dark == true)
       }
 
       Events("onChangeText", "onInputFocus", "onInputBlur")

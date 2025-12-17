@@ -5,6 +5,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
   private var textField: UITextField?
   private var textView: UITextView?
   private var isMultiline: Bool = false
+  private var isSecure: Bool = false
   private var placeholderText: String?
   private var isSettingTextProgrammatically: Bool = false
   private var isDarkMode: Bool = false
@@ -71,6 +72,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     ])
 
     textField = field
+    textField?.isSecureTextEntry = isSecure
     applyTheme()
   }
 
@@ -126,6 +128,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
   }
 
   func setSecureTextEntry(_ secure: Bool) {
+    isSecure = secure
     textField?.isSecureTextEntry = secure
   }
 

@@ -1,16 +1,15 @@
 package expo.modules.universaltextinput
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.text.method.PasswordTransformationMethod
+import android.graphics.Typeface
 import android.view.Gravity
-import android.view.View
 import android.widget.EditText
-import android.widget.FrameLayout
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
@@ -18,9 +17,11 @@ import expo.modules.kotlin.views.ExpoView
 class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
   private val editText: EditText = EditText(context)
   private var isMultiline: Boolean = false
+  private var isSecure: Boolean = false
   private var isSettingTextProgrammatically: Boolean = false
   private var isDarkMode: Boolean = false
   private var isEditable: Boolean = true
+  private var pendingInputTypeUpdate: Boolean = false
 
   private val onChangeText by EventDispatcher()
   private val onInputFocus by EventDispatcher()
@@ -71,24 +72,42 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   }
 
   fun setSecureTextEntry(secure: Boolean) {
-    editText.inputType = if (secure) {
-      InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-    } else if (isMultiline) {
-      InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-    } else {
-      InputType.TYPE_CLASS_TEXT
-    }
+    isSecure = secure
+    scheduleInputTypeUpdate()
   }
 
   fun setMultiline(multiline: Boolean) {
     isMultiline = multiline
-    editText.inputType = if (multiline) {
-      InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-    } else {
-      InputType.TYPE_CLASS_TEXT
-    }
     editText.isSingleLine = !multiline
     editText.gravity = if (multiline) Gravity.TOP or Gravity.START else Gravity.CENTER_VERTICAL or Gravity.START
+    scheduleInputTypeUpdate()
+  }
+
+  private fun scheduleInputTypeUpdate() {
+    if (!pendingInputTypeUpdate) {
+      pendingInputTypeUpdate = true
+      editText.post {
+        applyInputType()
+        pendingInputTypeUpdate = false
+      }
+    }
+  }
+
+  private fun applyInputType() {
+    val typeface = editText.typeface
+
+    editText.inputType = when {
+      isSecure -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+      isMultiline -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+      else -> InputType.TYPE_CLASS_TEXT
+    }
+
+    editText.typeface = typeface
+    editText.transformationMethod = if (isSecure) {
+      PasswordTransformationMethod.getInstance()
+    } else {
+      null
+    }
   }
 
   fun setAutoFocus(autoFocus: Boolean) {
@@ -116,7 +135,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
       borderColor = if (isDarkMode) Color.parseColor("#404040") else Color.parseColor("#d4d4d4")
       backgroundColor = if (isDarkMode) Color.parseColor("#171717") else Color.parseColor("#ffffff")
     } else {
-      // Disabled state - more subtle/dim colors
       textColor = if (isDarkMode) Color.parseColor("#737373") else Color.parseColor("#a3a3a3")
       hintColor = if (isDarkMode) Color.parseColor("#525252") else Color.parseColor("#d4d4d4")
       borderColor = if (isDarkMode) Color.parseColor("#303030") else Color.parseColor("#e5e5e5")
