@@ -23,6 +23,11 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   private var isEditable: Boolean = true
   private var pendingInputTypeUpdate: Boolean = false
 
+  // Reusable objects to reduce allocations
+  private val textEventMap = mutableMapOf<String, Any>()
+  private val emptyEventMap = emptyMap<String, Any>()
+  private val backgroundDrawable = GradientDrawable()
+
   private val onChangeText by EventDispatcher()
   private val onInputFocus by EventDispatcher()
   private val onInputBlur by EventDispatcher()
@@ -36,16 +41,17 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
       override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
       override fun afterTextChanged(s: Editable?) {
         if (!isSettingTextProgrammatically) {
-          onChangeText(mapOf("text" to (s?.toString() ?: "")))
+          textEventMap["text"] = s?.toString() ?: ""
+          onChangeText(textEventMap)
         }
       }
     })
 
     editText.setOnFocusChangeListener { _, hasFocus ->
       if (hasFocus) {
-        onInputFocus(emptyMap<String, Any>())
+        onInputFocus(emptyEventMap)
       } else {
-        onInputBlur(emptyMap<String, Any>())
+        onInputBlur(emptyEventMap)
       }
     }
   }
@@ -144,12 +150,10 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     editText.setTextColor(textColor)
     editText.setHintTextColor(hintColor)
 
-    val drawable = GradientDrawable().apply {
-      setColor(backgroundColor)
-      setStroke(2, borderColor)
-      cornerRadius = 12f
-    }
-    editText.background = drawable
+    backgroundDrawable.setColor(backgroundColor)
+    backgroundDrawable.setStroke(2, borderColor)
+    backgroundDrawable.cornerRadius = 12f
+    editText.background = backgroundDrawable
     editText.setPadding(32, 24, 32, 24)
   }
 }
