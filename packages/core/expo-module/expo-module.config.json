@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["UniversalTextInputModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.universaltextinput.UniversalTextInputModule"]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "universal-text-input-expo",
+  "version": "0.1.0",
+  "description": "Native Expo module for Universal TextInput - provides native text input views for iOS and Android",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "files": [
+    "src",
+    "android",
+    "ios",
+    "expo-module.config.json"
+  ],
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "expo-module",
+    "text-input",
+    "native",
+    "ios",
+    "android"
+  ],
+  "author": "Cory Simmons",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corysimmons/universal-text-input.git",
+    "directory": "packages/core/expo-module"
+  },
+  "bugs": {
+    "url": "https://github.com/corysimmons/universal-text-input/issues"
+  },
+  "homepage": "https://github.com/corysimmons/universal-text-input#readme",
+  "peerDependencies": {
+    "expo": ">=54.0.0",
+    "react": ">=18.0.0",
+    "react-native": ">=0.81.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "expo": "~54.0.29",
+    "expo-module-scripts": "^5.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3"
+  }
+}

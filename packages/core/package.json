@@ -1,0 +1,64 @@
+{
+  "name": "universal-text-input",
+  "version": "0.1.0",
+  "description": "Universal TextInput component for React Native and Web with consistent styling and theming",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "react",
+    "react-native",
+    "expo",
+    "text-input",
+    "universal",
+    "cross-platform",
+    "web",
+    "ios",
+    "android"
+  ],
+  "author": "Cory Simmons",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corysimmons/universal-text-input.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/corysimmons/universal-text-input/issues"
+  },
+  "homepage": "https://github.com/corysimmons/universal-text-input#readme",
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.74.0",
+    "universal-text-input-expo": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "universal-text-input-expo": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@base-ui-components/react": "^1.0.0-rc.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "typescript": "^5.9.3"
+  }
+}

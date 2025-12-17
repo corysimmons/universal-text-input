@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Expo
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Native builds (example app)
+packages/examples/*/ios/
+packages/examples/*/android/
+
+# Cocoapods
+**/Pods/
+
+# Android
+**/.gradle/
+**/app/build/
+**/build/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.maestro/
+playwright-report/
+test-results/
+
+# Misc
+*.tgz
+.turbo

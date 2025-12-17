@@ -1,0 +1,30 @@
+{
+  "name": "universal-text-input-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "example": "pnpm --filter minimal start",
+    "example:web": "pnpm --filter minimal web",
+    "example:ios": "pnpm --filter minimal ios",
+    "example:android": "pnpm --filter minimal android",
+    "clean": "pnpm -r clean",
+    "typecheck": "pnpm -r typecheck",
+    "publish:packages": "pnpm --filter universal-text-input-expo publish --access public && pnpm --filter universal-text-input publish --access public"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.0",
+      "react-dom": "19.1.0",
+      "react-native": "0.81.5",
+      "@types/react": "~19.1.10"
+    }
+  },
+  "packageManager": "pnpm@10.26.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
