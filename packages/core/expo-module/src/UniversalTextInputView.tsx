@@ -4,6 +4,7 @@ import { StyleProp, ViewStyle } from 'react-native';
 
 export interface UniversalTextInputViewProps {
   value?: string;
+  defaultValue?: string;
   placeholder?: string;
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
@@ -18,6 +19,7 @@ export interface UniversalTextInputViewProps {
 
 interface NativeProps {
   value?: string;
+  defaultValue?: string;
   placeholder?: string;
   onChangeText?: (event: { nativeEvent: { text: string } }) => void;
   onInputFocus?: () => void;

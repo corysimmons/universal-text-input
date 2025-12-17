@@ -10,6 +10,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
   private var isSettingTextProgrammatically: Bool = false
   private var isDarkMode: Bool = false
   private var isEditableState: Bool = true
+  private var hasSetDefaultValue: Bool = false
 
   let onChangeText = EventDispatcher()
   let onInputFocus = EventDispatcher()
@@ -113,6 +114,18 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
       }
       isSettingTextProgrammatically = false
     }
+  }
+
+  func setDefaultValue(_ value: String?) {
+    guard !hasSetDefaultValue, let value = value else { return }
+    hasSetDefaultValue = true
+    isSettingTextProgrammatically = true
+    if isMultiline {
+      textView?.text = value
+    } else {
+      textField?.text = value
+    }
+    isSettingTextProgrammatically = false
   }
 
   func setPlaceholder(_ placeholder: String?) {

@@ -22,6 +22,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   private var isDarkMode: Boolean = false
   private var isEditable: Boolean = true
   private var pendingInputTypeUpdate: Boolean = false
+  private var hasSetDefaultValue: Boolean = false
 
   // Reusable objects to reduce allocations
   private val textEventMap = mutableMapOf<String, Any>()
@@ -62,6 +63,17 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     if (currentText != newValue) {
       isSettingTextProgrammatically = true
       editText.setText(newValue)
+      editText.setSelection(editText.text.length)
+      isSettingTextProgrammatically = false
+    }
+  }
+
+  fun setDefaultValue(value: String?) {
+    // Only set once on initial render
+    if (!hasSetDefaultValue && value != null) {
+      hasSetDefaultValue = true
+      isSettingTextProgrammatically = true
+      editText.setText(value)
       editText.setSelection(editText.text.length)
       isSettingTextProgrammatically = false
     }

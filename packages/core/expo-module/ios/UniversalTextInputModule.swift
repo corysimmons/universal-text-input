@@ -9,6 +9,10 @@ public class UniversalTextInputModule: Module {
         view.setValue(value)
       }
 
+      Prop("defaultValue") { (view: UniversalTextInputView, value: String?) in
+        view.setDefaultValue(value)
+      }
+
       Prop("placeholder") { (view: UniversalTextInputView, placeholder: String?) in
         view.setPlaceholder(placeholder)
       }

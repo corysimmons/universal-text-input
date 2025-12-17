@@ -4,6 +4,7 @@ import { UniversalTextInputView } from 'universal-text-input-expo';
 
 export interface TextInputProps {
   value?: string;
+  defaultValue?: string;
   placeholder?: string;
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
@@ -18,6 +19,7 @@ export interface TextInputProps {
 
 export function TextInput({
   value,
+  defaultValue,
   placeholder,
   onChangeText,
   onFocus,
@@ -32,6 +34,7 @@ export function TextInput({
   return (
     <UniversalTextInputView
       value={value}
+      defaultValue={defaultValue}
       placeholder={placeholder}
       onChangeText={onChangeText}
       onFocus={onFocus}

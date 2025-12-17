@@ -4,6 +4,7 @@ import { TextInputTheme, defaultTheme } from './theme';
 
 export interface TextInputProps {
   value?: string;
+  defaultValue?: string;
   placeholder?: string;
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
@@ -19,6 +20,7 @@ export interface TextInputProps {
 
 export function TextInput({
   value,
+  defaultValue,
   placeholder,
   onChangeText,
   onFocus,
@@ -77,6 +79,7 @@ export function TextInput({
     return (
       <textarea
         value={value}
+        defaultValue={defaultValue}
         placeholder={placeholder}
         onChange={handleChange}
         onFocus={onFocus}
@@ -104,6 +107,7 @@ export function TextInput({
   return (
     <Input
       value={value}
+      defaultValue={defaultValue}
       placeholder={placeholder}
       onChange={handleChange}
       onFocus={onFocus}
