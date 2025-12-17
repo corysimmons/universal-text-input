@@ -10,7 +10,7 @@
     "example:android": "pnpm --filter minimal android",
     "clean": "pnpm -r clean",
     "typecheck": "pnpm -r typecheck",
-    "publish:packages": "pnpm --filter universal-text-input-expo publish --access public && pnpm --filter universal-text-input publish --access public"
+    "publish:packages": "pnpm --filter universal-text-input-expo publish --access public --otp=$OTP && pnpm --filter universal-text-input publish --access public --otp=$OTP"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
