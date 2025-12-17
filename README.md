@@ -13,16 +13,12 @@ A cross-platform TextInput component for React Native (iOS/Android) and Web with
 ## Installation
 
 ```bash
-# Install the core package
 npm install universal-text-input
-
-# For React Native/Expo projects, also install the native module
-npm install universal-text-input-expo
 ```
 
 ### Expo Projects
 
-After installing, run prebuild to link the native module:
+After installing, run prebuild to generate native projects:
 
 ```bash
 npx expo prebuild
@@ -187,10 +183,8 @@ const customTheme = createTheme({
 
 ## Packages
 
-This library is split into two packages:
-
-- **`universal-text-input`** - The main package with the TextInput component
-- **`universal-text-input-expo`** - Native module for iOS/Android (required for React Native)
+- **`universal-text-input`** - The main package (includes native module automatically)
+- **`universal-text-input-expo`** - Native Expo module (installed as dependency, no need to install separately)
 
 ## License
 

@@ -42,18 +42,19 @@
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-native": ">=0.74.0",
-    "universal-text-input-expo": ">=0.1.0"
+    "expo": ">=54.0.0"
   },
   "peerDependenciesMeta": {
-    "universal-text-input-expo": {
+    "react-native": {
       "optional": true
     },
-    "react-native": {
+    "expo": {
       "optional": true
     }
   },
   "dependencies": {
-    "@base-ui-components/react": "^1.0.0-rc.0"
+    "@base-ui-components/react": "^1.0.0-rc.0",
+    "universal-text-input-expo": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",

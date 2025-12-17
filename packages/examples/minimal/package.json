@@ -16,7 +16,6 @@
     "@expo/metro-runtime": "~6.1.2",
     "@react-navigation/native": "^7.1.25",
     "universal-text-input": "workspace:*",
-    "universal-text-input-expo": "workspace:*",
     "expo": "~54.0.29",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.19",
