@@ -1,9 +1,8 @@
 # Build artifacts
 android/build/
-android/.gradle/
-android/.cxx/
 ios/build/
-ios/Pods/
+*.xcworkspace/
+*.xcodeproj/xcuserdata/
 
 # IDE
 .idea/
@@ -11,3 +10,8 @@ ios/Pods/
 
 # Logs
 *.log
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
