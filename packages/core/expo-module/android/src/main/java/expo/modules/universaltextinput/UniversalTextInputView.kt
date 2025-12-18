@@ -8,6 +8,7 @@ import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.graphics.Typeface
 import android.view.Gravity
+import android.view.View.MeasureSpec
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
@@ -31,7 +32,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   private val onInputBlur by EventDispatcher()
 
   init {
-    addView(editText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    addView(editText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
     // Set initial padding to 0 (only once, props will override)
     editText.setPadding(0, 0, 0, 0)
     editText.compoundDrawablePadding = 0
@@ -178,5 +179,46 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     editText.setHintTextColor(hintColor)
     // Apply background directly to EditText - padding is included in its bounds
     editText.setBackgroundColor(backgroundColor)
+  }
+
+  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+    val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+    val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+    val heightSize = MeasureSpec.getSize(heightMeasureSpec)
+
+    // Measure EditText to get its intrinsic size
+    editText.measure(
+      MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY),
+      MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+    )
+
+    val intrinsicHeight = editText.measuredHeight
+
+    val finalHeight = when (heightMode) {
+      MeasureSpec.EXACTLY -> heightSize
+      MeasureSpec.AT_MOST -> minOf(intrinsicHeight, heightSize)
+      else -> intrinsicHeight
+    }
+
+    // Re-measure EditText with final height
+    editText.measure(
+      MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY),
+      MeasureSpec.makeMeasureSpec(finalHeight, MeasureSpec.EXACTLY)
+    )
+
+    setMeasuredDimension(widthSize, finalHeight)
+  }
+
+  override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+    editText.layout(0, 0, r - l, b - t)
+  }
+
+  override fun requestLayout() {
+    super.requestLayout()
+    post { measure(
+      MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+      MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY)
+    )}
   }
 }
