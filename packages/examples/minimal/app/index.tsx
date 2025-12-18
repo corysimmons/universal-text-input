@@ -20,7 +20,7 @@ export default function HomeScreen() {
           dark={isDark}
           style={{
             paddingHorizontal: 50,
-            paddingVertical: 10,
+            paddingVertical: 20,
             height: 'auto',
             borderWidth: 1,
             borderColor: isDark ? '#444' : '#ccc',

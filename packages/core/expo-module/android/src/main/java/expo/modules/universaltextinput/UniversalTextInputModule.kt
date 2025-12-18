@@ -48,7 +48,7 @@ class UniversalTextInputModule : Module() {
         view.setPaddingVertical(padding ?: 0)
       }
 
-      Events("onChangeText", "onInputFocus", "onInputBlur")
+      Events("onChangeText", "onInputFocus", "onInputBlur", "onContentSizeChange")
     }
   }
 }

@@ -7,7 +7,9 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.graphics.Typeface
+import android.util.Log
 import android.view.Gravity
+import android.view.View.MeasureSpec
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
@@ -24,11 +26,14 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
   // Reusable objects to reduce allocations
   private val textEventMap = mutableMapOf<String, Any>()
+  private val contentSizeMap = mutableMapOf<String, Any>()
   private val emptyEventMap = emptyMap<String, Any>()
+  private var lastReportedHeight: Float = 0f
 
   private val onChangeText by EventDispatcher()
   private val onInputFocus by EventDispatcher()
   private val onInputBlur by EventDispatcher()
+  private val onContentSizeChange by EventDispatcher()
 
   init {
     addView(editText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
@@ -144,16 +149,87 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   private var paddingH: Int = 0
   private var paddingV: Int = 0
 
+  private fun reportContentSizeIfNeeded() {
+    // Calculate intrinsic content height: text line height + vertical padding
+    val lineHeight = editText.lineHeight
+    val density = resources.displayMetrics.density
+    // Convert back to dp for JS
+    val contentHeight = (lineHeight + paddingV * 2) / density
+
+    if (contentHeight != lastReportedHeight && contentHeight > 0) {
+      lastReportedHeight = contentHeight
+      contentSizeMap["height"] = contentHeight
+      Log.d("UTI", "reportContentSizeIfNeeded: lineHeight=$lineHeight, paddingV=$paddingV, contentHeight=$contentHeight")
+      onContentSizeChange(contentSizeMap)
+    }
+  }
+
   fun setPaddingHorizontal(padding: Int) {
     paddingH = (padding * resources.displayMetrics.density).toInt()
+    Log.d("UTI", "setPaddingHorizontal: padding=$padding, paddingH=$paddingH")
     // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
+    requestLayout()
+    editText.post { reportContentSizeIfNeeded() }
   }
 
   fun setPaddingVertical(padding: Int) {
     paddingV = (padding * resources.displayMetrics.density).toInt()
+    Log.d("UTI", "setPaddingVertical: padding=$padding, paddingV=$paddingV")
     // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
+    requestLayout()
+    editText.post { reportContentSizeIfNeeded() }
+  }
+
+  override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+    super.onLayout(changed, left, top, right, bottom)
+    reportContentSizeIfNeeded()
+  }
+
+  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+    val heightSize = MeasureSpec.getSize(heightMeasureSpec)
+    val modeName = when (heightMode) {
+      MeasureSpec.EXACTLY -> "EXACTLY"
+      MeasureSpec.AT_MOST -> "AT_MOST"
+      MeasureSpec.UNSPECIFIED -> "UNSPECIFIED"
+      else -> "UNKNOWN"
+    }
+    Log.d("UTI", "onMeasure: heightMode=$modeName, heightSize=$heightSize, paddingV=$paddingV")
+
+    // Only calculate custom height when height is not explicitly specified (i.e., height: 'auto')
+    if (heightMode == MeasureSpec.UNSPECIFIED || heightMode == MeasureSpec.AT_MOST) {
+      val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+
+      // Measure the EditText with full width - it handles its own padding internally
+      val editTextWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY)
+      val editTextHeightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+      editText.measure(editTextWidthSpec, editTextHeightSpec)
+
+      // The EditText reports zero compound padding, so we need to add vertical padding explicitly
+      val textHeight = editText.measuredHeight
+      val totalHeight = textHeight + paddingV * 2
+
+      val finalHeight = if (heightMode == MeasureSpec.AT_MOST) {
+        minOf(totalHeight, MeasureSpec.getSize(heightMeasureSpec))
+      } else {
+        totalHeight
+      }
+
+      Log.d("UTI", "onMeasure: textHeight=$textHeight, totalHeight=$totalHeight, finalHeight=$finalHeight")
+
+      setMeasuredDimension(widthSize, finalHeight)
+
+      // Re-measure EditText to fill the final height
+      editText.measure(
+        editTextWidthSpec,
+        MeasureSpec.makeMeasureSpec(finalHeight, MeasureSpec.EXACTLY)
+      )
+    } else {
+      Log.d("UTI", "onMeasure: using super (EXACTLY mode)")
+      super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+    }
   }
 
   private fun applyTheme() {

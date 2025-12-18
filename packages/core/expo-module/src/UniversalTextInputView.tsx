@@ -9,6 +9,7 @@ export interface UniversalTextInputViewProps {
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  onContentSizeChange?: (event: { nativeEvent: { height: number } }) => void;
   style?: StyleProp<ViewStyle>;
   editable?: boolean;
   secureTextEntry?: boolean;
@@ -26,6 +27,7 @@ interface NativeProps {
   onChangeText?: (event: { nativeEvent: { text: string } }) => void;
   onInputFocus?: () => void;
   onInputBlur?: () => void;
+  onContentSizeChange?: (event: { nativeEvent: { height: number } }) => void;
   style?: StyleProp<ViewStyle>;
   editable?: boolean;
   secureTextEntry?: boolean;
@@ -42,6 +44,7 @@ export function UniversalTextInputView({
   onChangeText,
   onFocus,
   onBlur,
+  onContentSizeChange,
   ...props
 }: UniversalTextInputViewProps) {
   const handleChangeText = React.useCallback(
@@ -57,6 +60,7 @@ export function UniversalTextInputView({
       onChangeText={handleChangeText}
       onInputFocus={onFocus}
       onInputBlur={onBlur}
+      onContentSizeChange={onContentSizeChange}
     />
   );
 }
