@@ -1,16 +1,24 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:${project.properties['kotlinVersion'] ?: '1.9.24'}")
+  }
+}
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'maven-publish'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 
 group = 'expo.modules.universaltextinput'
 version = '0.1.0'
 
-buildscript {
-  def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
-  if (expoModulesCorePlugin.exists()) {
-    apply from: expoModulesCorePlugin
-    applyKotlinExpoModulesCorePlugin()
-  }
+def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+if (expoModulesCorePlugin.exists()) {
+  apply from: expoModulesCorePlugin
+  applyKotlinExpoModulesCorePlugin()
 }
 
 afterEvaluate {
@@ -48,6 +56,10 @@ android {
     targetSdkVersion safeExtGet("targetSdkVersion", 34)
   }
 
+  buildFeatures {
+    compose true
+  }
+
   publishing {
     singleVariant("release") {
       withSourcesJar()
@@ -58,6 +70,12 @@ android {
 dependencies {
   implementation project(':expo-modules-core')
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
+
+  // Jetpack Compose
+  implementation 'androidx.compose.foundation:foundation-android:1.7.6'
+  implementation 'androidx.compose.ui:ui-android:1.7.6'
+  implementation 'androidx.compose.material3:material3:1.3.1'
+  implementation 'androidx.lifecycle:lifecycle-runtime:2.8.7'
 }
 
 def getKotlinVersion() {

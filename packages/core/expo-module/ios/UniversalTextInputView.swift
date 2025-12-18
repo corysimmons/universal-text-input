@@ -54,14 +54,19 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     setupTextField()
   }
 
+  // Default styling constants (matching web theme)
+  private let defaultBorderRadius: CGFloat = 6
+  private let defaultBorderWidth: CGFloat = 1
+
   private func setupTextField() {
     let field = UITextField()
     field.delegate = self
     field.borderStyle = .none
     field.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     field.translatesAutoresizingMaskIntoConstraints = false
-    field.layer.cornerRadius = 0
-    field.layer.borderWidth = 0
+    field.layer.cornerRadius = defaultBorderRadius
+    field.layer.borderWidth = defaultBorderWidth
+    field.clipsToBounds = true
     addSubview(field)
 
     NSLayoutConstraint.activate([
@@ -73,6 +78,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
 
     textField = field
     textField?.isSecureTextEntry = isSecure
+    applyPadding()
     applyTheme()
   }
 
@@ -83,9 +89,10 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     let view = UITextView()
     view.delegate = self
     view.font = UIFont.systemFont(ofSize: 16)
-    view.layer.borderWidth = 0
-    view.layer.cornerRadius = 0
-    view.textContainerInset = .zero
+    view.layer.borderWidth = defaultBorderWidth
+    view.layer.cornerRadius = defaultBorderRadius
+    view.clipsToBounds = true
+    view.textContainerInset = UIEdgeInsets(top: paddingV, left: paddingH, bottom: paddingV, right: paddingH)
     view.textContainer.lineFragmentPadding = 0
     view.translatesAutoresizingMaskIntoConstraints = false
     addSubview(view)
@@ -219,7 +226,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     applyTheme()
   }
 
-  private var paddingH: CGFloat = 0
+  private var paddingH: CGFloat = 14 // Default ~0.875rem
   private var paddingV: CGFloat = 0
 
   func setPaddingHorizontal(_ padding: Int) {

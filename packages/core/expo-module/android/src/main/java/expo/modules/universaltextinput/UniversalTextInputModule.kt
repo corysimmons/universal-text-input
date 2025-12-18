@@ -37,7 +37,7 @@ class UniversalTextInputModule : Module() {
       }
 
       Prop("maxLines") { view: UniversalTextInputView, lines: Int? ->
-        if (lines != null) view.setMaxLines(lines)
+        view.setMaxLines(lines)
       }
 
       Prop("autoFocus") { view: UniversalTextInputView, autoFocus: Boolean? ->
@@ -46,14 +46,6 @@ class UniversalTextInputModule : Module() {
 
       Prop("dark") { view: UniversalTextInputView, dark: Boolean? ->
         view.setDarkMode(dark == true)
-      }
-
-      Prop("paddingHorizontal") { view: UniversalTextInputView, padding: Int? ->
-        view.setPaddingHorizontal(padding ?: 0)
-      }
-
-      Prop("paddingVertical") { view: UniversalTextInputView, padding: Int? ->
-        view.setPaddingVertical(padding ?: 0)
       }
 
       Events("onChangeText", "onInputFocus", "onInputBlur", "onContentSizeChange")

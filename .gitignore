@@ -57,3 +57,4 @@ test-results/
 # Misc
 *.tgz
 .turbo
+.reference

@@ -43,13 +43,6 @@ export default function HomeScreen() {
           minLines={3}
           maxLines={6}
           dark={isDark}
-          style={{
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderWidth: 1,
-            borderColor: isDark ? '#444' : '#ccc',
-            borderRadius: 8,
-          }}
         />
       </View>
 

@@ -48,11 +48,11 @@ public class UniversalTextInputModule: Module {
       }
 
       Prop("paddingHorizontal") { (view: UniversalTextInputView, padding: Int?) in
-        view.setPaddingHorizontal(padding ?? 0)
+        if let padding = padding { view.setPaddingHorizontal(padding) }
       }
 
       Prop("paddingVertical") { (view: UniversalTextInputView, padding: Int?) in
-        view.setPaddingVertical(padding ?? 0)
+        if let padding = padding { view.setPaddingVertical(padding) }
       }
 
       Events("onChangeText", "onInputFocus", "onInputBlur", "onContentSizeChange")

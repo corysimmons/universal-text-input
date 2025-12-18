@@ -1,281 +1,162 @@
 package expo.modules.universaltextinput
 
 import android.content.Context
-import android.graphics.Color
-import android.text.Editable
-import android.text.InputType
-import android.text.TextWatcher
-import android.text.method.PasswordTransformationMethod
-import android.graphics.Typeface
-import android.view.Gravity
-import android.view.View.MeasureSpec
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 
 class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
-  private val editText: NoPaddingEditText = NoPaddingEditText(context)
-  private var isMultiline: Boolean = false
-  private var isSecure: Boolean = false
-  private var isSettingTextProgrammatically: Boolean = false
-  private var isDarkMode: Boolean = false
-  private var isEditable: Boolean = true
-  private var pendingInputTypeUpdate: Boolean = false
-  private var hasSetDefaultValue: Boolean = false
-
-  // Reusable objects to reduce allocations
-  private val textEventMap = mutableMapOf<String, Any>()
-  private val contentSizeMap = mutableMapOf<String, Any>()
-  private val emptyEventMap = emptyMap<String, Any>()
-  private var lastReportedHeight: Float = 0f
 
   private val onChangeText by EventDispatcher()
   private val onInputFocus by EventDispatcher()
   private val onInputBlur by EventDispatcher()
   private val onContentSizeChange by EventDispatcher()
 
-  init {
-    addView(editText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-    // Set initial padding to 0 (only once, props will override)
-    editText.setPadding(0, 0, 0, 0)
-    editText.compoundDrawablePadding = 0
-    applyTheme()
+  // State holders
+  private val textState = mutableStateOf("")
+  private val placeholderState = mutableStateOf("")
+  private val multilineState = mutableStateOf(false)
+  private val minLinesState = mutableStateOf(1)
+  private val maxLinesState = mutableStateOf<Int?>(null)
+  private val secureState = mutableStateOf(false)
+  private val editableState = mutableStateOf(true)
+  private val autoFocusState = mutableStateOf(false)
+  private val darkState = mutableStateOf(false)
 
-    editText.addTextChangedListener(object : TextWatcher {
-      override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-      override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-      override fun afterTextChanged(s: Editable?) {
-        if (!isSettingTextProgrammatically) {
-          textEventMap["text"] = s?.toString() ?: ""
-          onChangeText(textEventMap)
-        }
-        // Report content size for auto-growing multiline
-        if (isMultiline) {
-          editText.post {
-            reportContentSizeIfNeeded()
-            // Auto-scroll to bottom after size is reported
-            val layout = editText.layout
-            if (layout != null) {
-              val scrollAmount = layout.getLineTop(layout.lineCount) - editText.height + editText.paddingTop + editText.paddingBottom
-              if (scrollAmount > 0) {
-                editText.scrollTo(0, scrollAmount)
-              }
-            }
-          }
-        }
-      }
-    })
+  private var hasSetDefaultValue = false
 
-    editText.setOnFocusChangeListener { _, hasFocus ->
-      if (hasFocus) {
-        onInputFocus(emptyEventMap)
-      } else {
-        onInputBlur(emptyEventMap)
-      }
+  private val composeView = ComposeView(context).apply {
+    setContent {
+      TextInputContent()
     }
   }
 
+  init {
+    addView(composeView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+  }
+
   fun setValue(value: String?) {
-    val currentText = editText.text.toString()
     val newValue = value ?: ""
-    if (currentText != newValue) {
-      isSettingTextProgrammatically = true
-      editText.setText(newValue)
-      editText.setSelection(editText.text.length)
-      isSettingTextProgrammatically = false
+    if (textState.value != newValue) {
+      textState.value = newValue
     }
   }
 
   fun setDefaultValue(value: String?) {
-    // Only set once on initial render
     if (!hasSetDefaultValue && value != null) {
       hasSetDefaultValue = true
-      isSettingTextProgrammatically = true
-      editText.setText(value)
-      editText.setSelection(editText.text.length)
-      isSettingTextProgrammatically = false
+      textState.value = value
     }
   }
 
   fun setPlaceholder(placeholder: String?) {
-    editText.hint = placeholder
-  }
-
-  fun setEditable(editable: Boolean) {
-    isEditable = editable
-    editText.isEnabled = editable
-    applyTheme()
-  }
-
-  fun setSecureTextEntry(secure: Boolean) {
-    isSecure = secure
-    scheduleInputTypeUpdate()
+    placeholderState.value = placeholder ?: ""
   }
 
   fun setMultiline(multiline: Boolean) {
-    isMultiline = multiline
-    editText.isSingleLine = !multiline
-    editText.gravity = if (multiline) Gravity.TOP or Gravity.START else Gravity.CENTER_VERTICAL or Gravity.START
-    scheduleInputTypeUpdate()
+    multilineState.value = multiline
   }
 
   fun setMinLines(lines: Int) {
-    editText.minLines = lines
+    minLinesState.value = lines
   }
 
-  fun setMaxLines(lines: Int) {
-    editText.maxLines = lines
+  fun setMaxLines(lines: Int?) {
+    maxLinesState.value = lines
   }
 
-  private fun scheduleInputTypeUpdate() {
-    if (!pendingInputTypeUpdate) {
-      pendingInputTypeUpdate = true
-      editText.post {
-        applyInputType()
-        pendingInputTypeUpdate = false
-      }
-    }
+  fun setSecureTextEntry(secure: Boolean) {
+    secureState.value = secure
   }
 
-  private fun applyInputType() {
-    val typeface = editText.typeface
-
-    editText.inputType = when {
-      isSecure -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-      isMultiline -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
-      else -> InputType.TYPE_CLASS_TEXT
-    }
-
-    editText.typeface = typeface
-    editText.transformationMethod = if (isSecure) {
-      PasswordTransformationMethod.getInstance()
-    } else {
-      null
-    }
+  fun setEditable(editable: Boolean) {
+    editableState.value = editable
   }
 
   fun setAutoFocus(autoFocus: Boolean) {
-    if (autoFocus) {
-      editText.post {
-        editText.requestFocus()
-      }
-    }
+    autoFocusState.value = autoFocus
   }
 
   fun setDarkMode(dark: Boolean) {
-    isDarkMode = dark
-    applyTheme()
+    darkState.value = dark
   }
 
-  private var paddingH: Int = 0
-  private var paddingV: Int = 0
+  @Composable
+  private fun TextInputContent() {
+    val focusRequester = remember { FocusRequester() }
 
-  private fun reportContentSizeIfNeeded() {
-    val density = resources.displayMetrics.density
-
-    // Calculate intrinsic content height based on text layout
-    val textHeight: Int
-    if (isMultiline) {
-      val layout = editText.layout
-      if (layout != null && layout.lineCount > 0) {
-        // For multiline, use the actual text layout height
-        textHeight = layout.height
-      } else {
-        // Layout not ready yet, use line height as fallback
-        textHeight = editText.lineHeight
+    LaunchedEffect(autoFocusState.value) {
+      if (autoFocusState.value) {
+        focusRequester.requestFocus()
       }
-    } else {
-      // For single line, use line height
-      textHeight = editText.lineHeight
     }
 
-    // Convert back to dp for JS (textHeight is in pixels, paddingV is in pixels)
-    val contentHeight = (textHeight + paddingV * 2) / density
+    val colorScheme = if (darkState.value) darkColorScheme() else lightColorScheme()
 
-    if (contentHeight != lastReportedHeight && contentHeight > 0) {
-      lastReportedHeight = contentHeight
-      contentSizeMap["height"] = contentHeight
-      onContentSizeChange(contentSizeMap)
-    }
-  }
-
-  fun setPaddingHorizontal(padding: Int) {
-    paddingH = (padding * resources.displayMetrics.density).toInt()
-    // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
-    editText.setPadding(paddingH, paddingV, paddingH, paddingV)
-    requestLayout()
-    editText.post { reportContentSizeIfNeeded() }
-  }
-
-  fun setPaddingVertical(padding: Int) {
-    paddingV = (padding * resources.displayMetrics.density).toInt()
-    // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
-    editText.setPadding(paddingH, paddingV, paddingH, paddingV)
-    requestLayout()
-    editText.post { reportContentSizeIfNeeded() }
-  }
-
-  override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-    super.onLayout(changed, left, top, right, bottom)
-    reportContentSizeIfNeeded()
-  }
-
-  override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-    val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-
-    // Only calculate custom height when height is not explicitly specified (i.e., height: 'auto')
-    if (heightMode == MeasureSpec.UNSPECIFIED || heightMode == MeasureSpec.AT_MOST) {
-      val widthSize = MeasureSpec.getSize(widthMeasureSpec)
-
-      // Measure the EditText with full width - it handles its own padding internally
-      val editTextWidthSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY)
-      val editTextHeightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-      editText.measure(editTextWidthSpec, editTextHeightSpec)
-
-      // The EditText reports zero compound padding for single-line, so we need to add vertical padding explicitly
-      val textHeight = editText.measuredHeight
-      val totalHeight = textHeight + paddingV * 2
-
-      val finalHeight = if (heightMode == MeasureSpec.AT_MOST) {
-        minOf(totalHeight, MeasureSpec.getSize(heightMeasureSpec))
+    MaterialTheme(colorScheme = colorScheme) {
+      val effectiveMaxLines = if (multilineState.value) {
+        maxLinesState.value ?: Int.MAX_VALUE
       } else {
-        totalHeight
+        1
       }
 
-      setMeasuredDimension(widthSize, finalHeight)
-
-      // Re-measure EditText to fill the final height
-      editText.measure(
-        editTextWidthSpec,
-        MeasureSpec.makeMeasureSpec(finalHeight, MeasureSpec.EXACTLY)
+      OutlinedTextField(
+        value = textState.value,
+        onValueChange = { newValue ->
+          textState.value = newValue
+          onChangeText(mapOf("text" to newValue))
+        },
+        placeholder = {
+          if (placeholderState.value.isNotEmpty()) {
+            Text(placeholderState.value)
+          }
+        },
+        enabled = editableState.value,
+        singleLine = !multilineState.value,
+        minLines = if (multilineState.value) minLinesState.value else 1,
+        maxLines = effectiveMaxLines,
+        visualTransformation = if (secureState.value) {
+          PasswordVisualTransformation()
+        } else {
+          VisualTransformation.None
+        },
+        keyboardOptions = if (secureState.value) {
+          KeyboardOptions(keyboardType = KeyboardType.Password)
+        } else {
+          KeyboardOptions.Default
+        },
+        modifier = Modifier
+          .fillMaxWidth()
+          .focusRequester(focusRequester)
+          .onFocusChanged { focusState ->
+            if (focusState.isFocused) {
+              onInputFocus(emptyMap())
+            } else {
+              onInputBlur(emptyMap())
+            }
+          }
       )
-    } else {
-      super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
   }
-
-  private fun applyTheme() {
-    val textColor: Int
-    val hintColor: Int
-    val borderColor: Int
-    val backgroundColor: Int
-
-    if (isEditable) {
-      textColor = if (isDarkMode) Color.parseColor("#fafafa") else Color.parseColor("#171717")
-      hintColor = if (isDarkMode) Color.parseColor("#a3a3a3") else Color.parseColor("#a3a3a3")
-      borderColor = if (isDarkMode) Color.parseColor("#404040") else Color.parseColor("#d4d4d4")
-      backgroundColor = if (isDarkMode) Color.parseColor("#171717") else Color.parseColor("#ffffff")
-    } else {
-      textColor = if (isDarkMode) Color.parseColor("#737373") else Color.parseColor("#a3a3a3")
-      hintColor = if (isDarkMode) Color.parseColor("#525252") else Color.parseColor("#d4d4d4")
-      borderColor = if (isDarkMode) Color.parseColor("#303030") else Color.parseColor("#e5e5e5")
-      backgroundColor = if (isDarkMode) Color.parseColor("#1a1a1a") else Color.parseColor("#fafafa")
-    }
-
-    editText.setTextColor(textColor)
-    editText.setHintTextColor(hintColor)
-    // Apply background directly to EditText - padding is included in its bounds
-    editText.setBackgroundColor(backgroundColor)
-  }
-
 }
