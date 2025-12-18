@@ -19,13 +19,11 @@ export default function HomeScreen() {
           placeholder="Enter some text..."
           dark={isDark}
           style={{
-            // height: 200,
             paddingHorizontal: 50,
-            paddingVertical: 30,
+            paddingVertical: 0,
             borderWidth: 1,
             borderColor: isDark ? '#444' : '#ccc',
             borderRadius: 8,
-            // height: 70
           }}
           />
         <Text style={[styles.value, isDark && styles.valueDark]}>Value: {text}</Text>
