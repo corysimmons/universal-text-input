@@ -33,6 +33,9 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
   init {
     addView(editText, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    // Set initial padding to 0 (only once, props will override)
+    editText.setPadding(0, 0, 0, 0)
+    editText.compoundDrawablePadding = 0
     applyTheme()
 
     editText.addTextChangedListener(object : TextWatcher {
@@ -172,10 +175,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
     editText.setTextColor(textColor)
     editText.setHintTextColor(hintColor)
-
     editText.setBackgroundColor(backgroundColor)
-    editText.setPadding(0, 0, 0, 0)
-    editText.setPaddingRelative(0, 0, 0, 0)
-    editText.compoundDrawablePadding = 0
   }
 }
