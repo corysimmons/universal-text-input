@@ -18,6 +18,7 @@ export default function HomeScreen() {
           onChangeText={setText}
           placeholder="Enter some text..."
           dark={isDark}
+          style={{height:30, padding:200}}
         />
         <Text style={[styles.value, isDark && styles.valueDark]}>Value: {text}</Text>
       </View>

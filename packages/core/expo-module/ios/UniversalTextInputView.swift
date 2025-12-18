@@ -57,12 +57,8 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     field.borderStyle = .none
     field.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
     field.translatesAutoresizingMaskIntoConstraints = false
-    field.layer.cornerRadius = 6
-    field.layer.borderWidth = 1
-    field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 1))
-    field.leftViewMode = .always
-    field.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 1))
-    field.rightViewMode = .always
+    field.layer.cornerRadius = 0
+    field.layer.borderWidth = 0
     addSubview(field)
 
     NSLayoutConstraint.activate([
@@ -84,9 +80,9 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     let view = UITextView()
     view.delegate = self
     view.font = UIFont.systemFont(ofSize: 16)
-    view.layer.borderWidth = 1
-    view.layer.cornerRadius = 6
-    view.textContainerInset = UIEdgeInsets(top: 10, left: 8, bottom: 10, right: 8)
+    view.layer.borderWidth = 0
+    view.layer.cornerRadius = 0
+    view.textContainerInset = .zero
     view.translatesAutoresizingMaskIntoConstraints = false
     addSubview(view)
 

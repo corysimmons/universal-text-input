@@ -163,9 +163,9 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     editText.setHintTextColor(hintColor)
 
     backgroundDrawable.setColor(backgroundColor)
-    backgroundDrawable.setStroke(2, borderColor)
-    backgroundDrawable.cornerRadius = 12f
+    backgroundDrawable.setStroke(0, borderColor)
+    backgroundDrawable.cornerRadius = 0f
     editText.background = backgroundDrawable
-    editText.setPadding(32, 24, 32, 24)
+    editText.setPadding(0, 0, 0, 0)
   }
 }
