@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle, StyleSheet } from 'react-native';
 import { UniversalTextInputView } from 'universal-text-input-expo';
 
 export interface TextInputProps {
@@ -32,9 +32,20 @@ export function TextInput({
   multiline = false,
   autoFocus = false,
   dark = false,
-  paddingHorizontal,
-  paddingVertical,
+  paddingHorizontal: paddingHorizontalProp,
+  paddingVertical: paddingVerticalProp,
 }: TextInputProps) {
+  // Flatten style to extract padding values
+  const flatStyle = StyleSheet.flatten(style) || {};
+
+  // Extract padding from style, with prop values taking precedence
+  const paddingHorizontal = paddingHorizontalProp ??
+    (flatStyle.paddingHorizontal as number | undefined) ??
+    (flatStyle.padding as number | undefined);
+  const paddingVertical = paddingVerticalProp ??
+    (flatStyle.paddingVertical as number | undefined) ??
+    (flatStyle.padding as number | undefined);
+
   return (
     <UniversalTextInputView
       value={value}

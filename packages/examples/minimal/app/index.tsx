@@ -19,8 +19,9 @@ export default function HomeScreen() {
           placeholder="Enter some text..."
           dark={isDark}
           style={{
-            paddingHorizontal: 30,
-            paddingVertical: 30,
+            // height: 200,
+            paddingHorizontal: 50,
+            paddingVertical: 50,
             borderWidth: 1,
             borderColor: isDark ? '#444' : '#ccc',
             borderRadius: 8,

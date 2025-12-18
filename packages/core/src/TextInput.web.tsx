@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Input } from '@base-ui-components/react/input';
+import { StyleProp, ViewStyle } from 'react-native';
 import { TextInputTheme, defaultTheme } from './theme';
 
 export interface TextInputProps {
@@ -9,6 +10,7 @@ export interface TextInputProps {
   onChangeText?: (text: string) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  style?: StyleProp<ViewStyle>;
   className?: string;
   editable?: boolean;
   secureTextEntry?: boolean;
@@ -18,6 +20,15 @@ export interface TextInputProps {
   theme?: TextInputTheme;
 }
 
+// Helper to flatten StyleProp<ViewStyle> into a single object
+function flattenStyle(style: StyleProp<ViewStyle>): ViewStyle {
+  if (!style) return {};
+  if (Array.isArray(style)) {
+    return style.reduce<ViewStyle>((acc, s) => ({ ...acc, ...flattenStyle(s) }), {});
+  }
+  return style as ViewStyle;
+}
+
 export function TextInput({
   value,
   defaultValue,
@@ -25,6 +36,7 @@ export function TextInput({
   onChangeText,
   onFocus,
   onBlur,
+  style,
   className,
   editable = true,
   secureTextEntry = false,
@@ -34,6 +46,19 @@ export function TextInput({
   theme: themeProp,
 }: TextInputProps) {
   const theme = { ...defaultTheme, ...themeProp };
+  const flatStyle = flattenStyle(style);
+
+  // Extract relevant style properties
+  const height = flatStyle.height;
+  const paddingHorizontal = flatStyle.paddingHorizontal ?? flatStyle.padding;
+  const paddingVertical = flatStyle.paddingVertical ?? flatStyle.padding;
+  const paddingLeft = flatStyle.paddingLeft ?? paddingHorizontal;
+  const paddingRight = flatStyle.paddingRight ?? paddingHorizontal;
+  const paddingTop = flatStyle.paddingTop ?? paddingVertical;
+  const paddingBottom = flatStyle.paddingBottom ?? paddingVertical;
+  const borderWidth = flatStyle.borderWidth;
+  const borderColor = flatStyle.borderColor;
+  const borderRadius = flatStyle.borderRadius;
 
   const handleChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -49,14 +74,21 @@ export function TextInput({
     return dark ? darkColor : lightColor;
   };
 
+  const themeBorderColor = getColor(theme.borderColor, theme.borderColorDark, theme.disabledBorderColor, theme.disabledBorderColorDark);
+  const resolvedBorderWidth = borderWidth ?? 1;
+  const resolvedBorderColor = borderColor ?? themeBorderColor;
+
   const baseStyle: React.CSSProperties = {
     boxSizing: 'border-box',
-    paddingLeft: '0.875rem',
+    paddingLeft: paddingLeft ?? '0.875rem',
+    paddingRight: paddingRight ?? '0.875rem',
+    paddingTop: paddingTop,
+    paddingBottom: paddingBottom,
     margin: 0,
-    border: `1px solid ${getColor(theme.borderColor, theme.borderColorDark, theme.disabledBorderColor, theme.disabledBorderColorDark)}`,
+    border: `${resolvedBorderWidth}px solid ${resolvedBorderColor}`,
     width: '100%',
-    height: theme.height,
-    borderRadius: theme.borderRadius,
+    height: height ?? theme.height,
+    borderRadius: borderRadius ?? theme.borderRadius,
     fontFamily: theme.fontFamily,
     fontSize: theme.fontSize,
     fontWeight: 'normal',
@@ -66,9 +98,8 @@ export function TextInput({
 
   const textareaStyle: React.CSSProperties = {
     ...baseStyle,
-    height: 'auto',
-    minHeight: '5rem',
-    padding: '0.5rem 0.875rem',
+    height: height ?? 'auto',
+    minHeight: height ? undefined : '5rem',
     resize: 'vertical',
   };
 
