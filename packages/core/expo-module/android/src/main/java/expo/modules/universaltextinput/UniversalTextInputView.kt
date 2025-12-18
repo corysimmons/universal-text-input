@@ -8,13 +8,12 @@ import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.graphics.Typeface
 import android.view.Gravity
-import android.widget.EditText
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
 
 class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoView(context, appContext) {
-  private val editText: EditText = EditText(context)
+  private val editText: NoPaddingEditText = NoPaddingEditText(context)
   private var isMultiline: Boolean = false
   private var isSecure: Boolean = false
   private var isSettingTextProgrammatically: Boolean = false
@@ -147,11 +146,13 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
   fun setPaddingHorizontal(padding: Int) {
     paddingH = (padding * resources.displayMetrics.density).toInt()
+    // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
   }
 
   fun setPaddingVertical(padding: Int) {
     paddingV = (padding * resources.displayMetrics.density).toInt()
+    // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
   }
 
@@ -175,6 +176,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
     editText.setTextColor(textColor)
     editText.setHintTextColor(hintColor)
+    // Apply background directly to EditText - padding is included in its bounds
     editText.setBackgroundColor(backgroundColor)
   }
 }

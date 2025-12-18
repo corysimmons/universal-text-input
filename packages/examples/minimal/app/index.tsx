@@ -21,10 +21,11 @@ export default function HomeScreen() {
           style={{
             // height: 200,
             paddingHorizontal: 50,
-            paddingVertical: 50,
+            paddingVertical: 0,
             borderWidth: 1,
             borderColor: isDark ? '#444' : '#ccc',
             borderRadius: 8,
+            height: 'auto'
           }}
           />
         <Text style={[styles.value, isDark && styles.valueDark]}>Value: {text}</Text>

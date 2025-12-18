@@ -1,6 +1,10 @@
-The Problem
+The Problem (RESOLVED)
 On Android, adding vertical padding to a TextInput causes the text content to clip, even though the input visually expands to include the padding. Horizontal padding works correctly. The issue doesn't occur on web.
-What's Likely Happening
+
+## Solution Implemented
+The fix applies vertical padding to the wrapper view (ExpoView) instead of the EditText directly. Horizontal padding is still applied to the EditText since it works correctly. This is approach (A) from the analysis below - making the EditText size naturally to its text content while handling vertical spacing externally.
+
+## What's Likely Happening (Original Analysis)
 Android's native EditText calculates the text drawing bounds separately from the view's padding. When you add vertical padding, the outer container grows, but the internal text rendering area doesn't expand accordingly—it stays the same height and gets pushed into a space that's now too small, causing clipping.
 Key Terms for Searching/Discussing
 
