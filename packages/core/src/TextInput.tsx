@@ -17,6 +17,8 @@ export interface TextInputProps {
   editable?: boolean;
   secureTextEntry?: boolean;
   multiline?: boolean;
+  minLines?: number;
+  maxLines?: number;
   autoFocus?: boolean;
   dark?: boolean;
   theme?: TextInputTheme;

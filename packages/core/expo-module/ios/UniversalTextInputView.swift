@@ -11,10 +11,13 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
   private var isDarkMode: Bool = false
   private var isEditableState: Bool = true
   private var hasSetDefaultValue: Bool = false
+  private var minLinesCount: Int?
+  private var maxLinesCount: Int?
 
   let onChangeText = EventDispatcher()
   let onInputFocus = EventDispatcher()
   let onInputBlur = EventDispatcher()
+  let onContentSizeChange = EventDispatcher()
 
   // Theme colors - account for both dark mode and disabled state
   private var textColor: UIColor {
@@ -153,6 +156,18 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
       textView = nil
       setupTextField()
     }
+  }
+
+  func setMinLines(_ lines: Int) {
+    minLinesCount = lines
+    // iOS UITextView doesn't have native minLines support
+    // Height is typically controlled by constraints from React Native
+  }
+
+  func setMaxLines(_ lines: Int) {
+    maxLinesCount = lines
+    // iOS UITextView doesn't have native maxLines support
+    // Height is typically controlled by constraints from React Native
   }
 
   func setAutoFocus(_ autoFocus: Bool) {

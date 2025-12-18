@@ -40,6 +40,8 @@ export default function HomeScreen() {
           onChangeText={setMultilineText}
           placeholder="Enter multiple lines..."
           multiline
+          minLines={3}                                                                                                                      
+    maxLines={6} 
           dark={isDark}
           style={{
             paddingHorizontal: 50,

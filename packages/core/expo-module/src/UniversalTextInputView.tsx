@@ -14,6 +14,8 @@ export interface UniversalTextInputViewProps {
   editable?: boolean;
   secureTextEntry?: boolean;
   multiline?: boolean;
+  minLines?: number;
+  maxLines?: number;
   autoFocus?: boolean;
   dark?: boolean;
   paddingHorizontal?: number;
@@ -32,6 +34,8 @@ interface NativeProps {
   editable?: boolean;
   secureTextEntry?: boolean;
   multiline?: boolean;
+  minLines?: number;
+  maxLines?: number;
   autoFocus?: boolean;
   dark?: boolean;
   paddingHorizontal?: number;

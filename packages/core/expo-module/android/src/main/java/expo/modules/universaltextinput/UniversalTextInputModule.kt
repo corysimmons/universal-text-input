@@ -32,6 +32,14 @@ class UniversalTextInputModule : Module() {
         view.setMultiline(multiline == true)
       }
 
+      Prop("minLines") { view: UniversalTextInputView, lines: Int? ->
+        view.setMinLines(lines ?: 1)
+      }
+
+      Prop("maxLines") { view: UniversalTextInputView, lines: Int? ->
+        if (lines != null) view.setMaxLines(lines)
+      }
+
       Prop("autoFocus") { view: UniversalTextInputView, autoFocus: Boolean? ->
         view.setAutoFocus(autoFocus == true)
       }

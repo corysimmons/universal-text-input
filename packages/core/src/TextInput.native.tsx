@@ -13,6 +13,8 @@ export interface TextInputProps {
   editable?: boolean;
   secureTextEntry?: boolean;
   multiline?: boolean;
+  minLines?: number;
+  maxLines?: number;
   autoFocus?: boolean;
   dark?: boolean;
   paddingHorizontal?: number;
@@ -23,6 +25,8 @@ interface ContentSizeChangeEvent {
   nativeEvent: {
     height: number;
   };
+  // Expo modules may also pass height directly
+  height?: number;
 }
 
 const isAndroid = Platform.OS === 'android';
@@ -38,6 +42,8 @@ export function TextInput({
   editable = true,
   secureTextEntry = false,
   multiline = false,
+  minLines,
+  maxLines,
   autoFocus = false,
   dark = false,
   paddingHorizontal: paddingHorizontalProp,
@@ -54,26 +60,48 @@ export function TextInput({
     (flatStyle.paddingVertical as number | undefined) ??
     (flatStyle.padding as number | undefined);
 
-  // Use auto height when explicitly set to 'auto', or when there's vertical padding and no explicit height
-  // This ensures Android correctly accounts for padding in the height calculation
-  // Multiline inputs should NOT auto-height - they have fixed height and scroll internally
+  // Use auto height when:
+  // 1. Single-line with padding (to account for padding in height)
+  // 2. Multiline with minLines/maxLines (auto-grow behavior)
   const hasExplicitHeight = flatStyle.height !== undefined && flatStyle.height !== 'auto';
-  const hasAutoHeight = !multiline && !hasExplicitHeight && (flatStyle.height === 'auto' || paddingVertical !== undefined);
+  const hasAutoGrowMultiline = multiline && (minLines !== undefined || maxLines !== undefined);
+  const hasAutoHeight = !hasExplicitHeight && (
+    (!multiline && (flatStyle.height === 'auto' || paddingVertical !== undefined)) ||
+    hasAutoGrowMultiline
+  );
 
   // Track content size for Android auto-height
   const [contentHeight, setContentHeight] = React.useState<number | null>(null);
 
   const handleContentSizeChange = React.useCallback((event: ContentSizeChangeEvent) => {
     if (isAndroid && hasAutoHeight) {
-      const { height } = event.nativeEvent;
-      setContentHeight(height);
+      // Handle both event structures: Expo modules may use nativeEvent or direct properties
+      const height = event.nativeEvent?.height ?? event.height;
+      if (height !== undefined && height > 0) {
+        setContentHeight(height);
+      }
     }
   }, [hasAutoHeight]);
 
-  // On Android with auto height (single-line only), use the measured content height
-  const androidHeightStyle = isAndroid && hasAutoHeight && contentHeight
-    ? { height: contentHeight }
-    : undefined;
+  // Calculate min/max heights based on line count (approximate line height ~20dp + padding)
+  const lineHeightDp = 20;
+  const verticalPaddingDp = (paddingVertical ?? 0) * 2;
+  const minHeightFromLines = minLines ? (minLines * lineHeightDp + verticalPaddingDp) : undefined;
+  const maxHeightFromLines = maxLines ? (maxLines * lineHeightDp + verticalPaddingDp) : undefined;
+
+  // On Android with auto height, use the measured content height (clamped for multiline)
+  let androidHeightStyle: { height: number } | undefined;
+  if (isAndroid && hasAutoHeight && contentHeight) {
+    let height = contentHeight;
+    if (hasAutoGrowMultiline) {
+      if (minHeightFromLines) height = Math.max(height, minHeightFromLines);
+      if (maxHeightFromLines) height = Math.min(height, maxHeightFromLines);
+    }
+    androidHeightStyle = { height };
+  } else if (isAndroid && hasAutoGrowMultiline && minHeightFromLines) {
+    // Set initial height to minLines before content size is reported
+    androidHeightStyle = { height: minHeightFromLines };
+  }
 
   return (
     <UniversalTextInputView
@@ -88,6 +116,8 @@ export function TextInput({
       editable={editable}
       secureTextEntry={secureTextEntry}
       multiline={multiline}
+      minLines={minLines}
+      maxLines={maxLines}
       autoFocus={autoFocus}
       dark={dark}
       paddingHorizontal={paddingHorizontal}

@@ -49,9 +49,11 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
           textEventMap["text"] = s?.toString() ?: ""
           onChangeText(textEventMap)
         }
-        // Auto-scroll to bottom for multiline when text changes
+        // Report content size for auto-growing multiline
         if (isMultiline) {
           editText.post {
+            reportContentSizeIfNeeded()
+            // Auto-scroll to bottom after size is reported
             val layout = editText.layout
             if (layout != null) {
               val scrollAmount = layout.getLineTop(layout.lineCount) - editText.height + editText.paddingTop + editText.paddingBottom
@@ -117,6 +119,14 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     scheduleInputTypeUpdate()
   }
 
+  fun setMinLines(lines: Int) {
+    editText.minLines = lines
+  }
+
+  fun setMaxLines(lines: Int) {
+    editText.maxLines = lines
+  }
+
   private fun scheduleInputTypeUpdate() {
     if (!pendingInputTypeUpdate) {
       pendingInputTypeUpdate = true
@@ -164,15 +174,22 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     val density = resources.displayMetrics.density
 
     // Calculate intrinsic content height based on text layout
-    val textHeight = if (isMultiline && editText.layout != null) {
-      // For multiline, use the actual text layout height
-      editText.layout.height
+    val textHeight: Int
+    if (isMultiline) {
+      val layout = editText.layout
+      if (layout != null && layout.lineCount > 0) {
+        // For multiline, use the actual text layout height
+        textHeight = layout.height
+      } else {
+        // Layout not ready yet, use line height as fallback
+        textHeight = editText.lineHeight
+      }
     } else {
       // For single line, use line height
-      editText.lineHeight
+      textHeight = editText.lineHeight
     }
 
-    // Convert back to dp for JS
+    // Convert back to dp for JS (textHeight is in pixels, paddingV is in pixels)
     val contentHeight = (textHeight + paddingV * 2) / density
 
     if (contentHeight != lastReportedHeight && contentHeight > 0) {

@@ -29,6 +29,16 @@ public class UniversalTextInputModule: Module {
         view.setMultiline(multiline == true)
       }
 
+      Prop("minLines") { (view: UniversalTextInputView, lines: Int?) in
+        view.setMinLines(lines ?? 1)
+      }
+
+      Prop("maxLines") { (view: UniversalTextInputView, lines: Int?) in
+        if let lines = lines {
+          view.setMaxLines(lines)
+        }
+      }
+
       Prop("autoFocus") { (view: UniversalTextInputView, autoFocus: Bool?) in
         view.setAutoFocus(autoFocus == true)
       }
@@ -45,7 +55,7 @@ public class UniversalTextInputModule: Module {
         view.setPaddingVertical(padding ?? 0)
       }
 
-      Events("onChangeText", "onInputFocus", "onInputBlur")
+      Events("onChangeText", "onInputFocus", "onInputBlur", "onContentSizeChange")
     }
   }
 }
