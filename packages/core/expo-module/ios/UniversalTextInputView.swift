@@ -83,6 +83,7 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     view.layer.borderWidth = 0
     view.layer.cornerRadius = 0
     view.textContainerInset = .zero
+    view.textContainer.lineFragmentPadding = 0
     view.translatesAutoresizingMaskIntoConstraints = false
     addSubview(view)
 

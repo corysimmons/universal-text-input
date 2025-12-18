@@ -167,5 +167,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     backgroundDrawable.cornerRadius = 0f
     editText.background = backgroundDrawable
     editText.setPadding(0, 0, 0, 0)
+    editText.setPaddingRelative(0, 0, 0, 0)
+    editText.compoundDrawablePadding = 0
   }
 }
