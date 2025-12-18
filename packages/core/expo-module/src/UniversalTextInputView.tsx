@@ -15,6 +15,8 @@ export interface UniversalTextInputViewProps {
   multiline?: boolean;
   autoFocus?: boolean;
   dark?: boolean;
+  paddingHorizontal?: number;
+  paddingVertical?: number;
 }
 
 interface NativeProps {
@@ -30,6 +32,8 @@ interface NativeProps {
   multiline?: boolean;
   autoFocus?: boolean;
   dark?: boolean;
+  paddingHorizontal?: number;
+  paddingVertical?: number;
 }
 
 const NativeView = requireNativeViewManager<NativeProps>('UniversalTextInput');

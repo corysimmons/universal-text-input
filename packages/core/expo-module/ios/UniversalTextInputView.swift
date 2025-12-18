@@ -204,6 +204,30 @@ class UniversalTextInputView: ExpoView, UITextFieldDelegate, UITextViewDelegate 
     applyTheme()
   }
 
+  private var paddingH: CGFloat = 0
+  private var paddingV: CGFloat = 0
+
+  func setPaddingHorizontal(_ padding: Int) {
+    paddingH = CGFloat(padding)
+    applyPadding()
+  }
+
+  func setPaddingVertical(_ padding: Int) {
+    paddingV = CGFloat(padding)
+    applyPadding()
+  }
+
+  private func applyPadding() {
+    // For UITextField, use leftView/rightView for horizontal padding
+    textField?.leftView = UIView(frame: CGRect(x: 0, y: 0, width: paddingH, height: 1))
+    textField?.leftViewMode = .always
+    textField?.rightView = UIView(frame: CGRect(x: 0, y: 0, width: paddingH, height: 1))
+    textField?.rightViewMode = .always
+
+    // For UITextView, use textContainerInset
+    textView?.textContainerInset = UIEdgeInsets(top: paddingV, left: paddingH, bottom: paddingV, right: paddingH)
+  }
+
   private func applyTheme() {
     textField?.textColor = textColor
     textField?.backgroundColor = bgColor

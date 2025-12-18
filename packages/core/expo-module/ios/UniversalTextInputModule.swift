@@ -37,6 +37,14 @@ public class UniversalTextInputModule: Module {
         view.setDarkMode(dark == true)
       }
 
+      Prop("paddingHorizontal") { (view: UniversalTextInputView, padding: Int?) in
+        view.setPaddingHorizontal(padding ?? 0)
+      }
+
+      Prop("paddingVertical") { (view: UniversalTextInputView, padding: Int?) in
+        view.setPaddingVertical(padding ?? 0)
+      }
+
       Events("onChangeText", "onInputFocus", "onInputBlur")
     }
   }

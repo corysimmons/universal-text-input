@@ -15,6 +15,8 @@ export interface TextInputProps {
   multiline?: boolean;
   autoFocus?: boolean;
   dark?: boolean;
+  paddingHorizontal?: number;
+  paddingVertical?: number;
 }
 
 export function TextInput({
@@ -30,6 +32,8 @@ export function TextInput({
   multiline = false,
   autoFocus = false,
   dark = false,
+  paddingHorizontal,
+  paddingVertical,
 }: TextInputProps) {
   return (
     <UniversalTextInputView
@@ -45,6 +49,8 @@ export function TextInput({
       multiline={multiline}
       autoFocus={autoFocus}
       dark={dark}
+      paddingHorizontal={paddingHorizontal}
+      paddingVertical={paddingVertical}
     />
   );
 }

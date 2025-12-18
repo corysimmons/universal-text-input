@@ -2,7 +2,6 @@ package expo.modules.universaltextinput
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -27,7 +26,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   // Reusable objects to reduce allocations
   private val textEventMap = mutableMapOf<String, Any>()
   private val emptyEventMap = emptyMap<String, Any>()
-  private val backgroundDrawable = GradientDrawable()
 
   private val onChangeText by EventDispatcher()
   private val onInputFocus by EventDispatcher()
@@ -141,6 +139,19 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     applyTheme()
   }
 
+  private var paddingH: Int = 0
+  private var paddingV: Int = 0
+
+  fun setPaddingHorizontal(padding: Int) {
+    paddingH = (padding * resources.displayMetrics.density).toInt()
+    editText.setPadding(paddingH, paddingV, paddingH, paddingV)
+  }
+
+  fun setPaddingVertical(padding: Int) {
+    paddingV = (padding * resources.displayMetrics.density).toInt()
+    editText.setPadding(paddingH, paddingV, paddingH, paddingV)
+  }
+
   private fun applyTheme() {
     val textColor: Int
     val hintColor: Int
@@ -162,10 +173,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     editText.setTextColor(textColor)
     editText.setHintTextColor(hintColor)
 
-    backgroundDrawable.setColor(backgroundColor)
-    backgroundDrawable.setStroke(0, borderColor)
-    backgroundDrawable.cornerRadius = 0f
-    editText.background = backgroundDrawable
+    editText.setBackgroundColor(backgroundColor)
     editText.setPadding(0, 0, 0, 0)
     editText.setPaddingRelative(0, 0, 0, 0)
     editText.compoundDrawablePadding = 0
