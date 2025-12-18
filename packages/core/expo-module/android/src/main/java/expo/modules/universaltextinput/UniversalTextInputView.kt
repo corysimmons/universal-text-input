@@ -49,6 +49,18 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
           textEventMap["text"] = s?.toString() ?: ""
           onChangeText(textEventMap)
         }
+        // Auto-scroll to bottom for multiline when text changes
+        if (isMultiline) {
+          editText.post {
+            val layout = editText.layout
+            if (layout != null) {
+              val scrollAmount = layout.getLineTop(layout.lineCount) - editText.height + editText.paddingTop + editText.paddingBottom
+              if (scrollAmount > 0) {
+                editText.scrollTo(0, scrollAmount)
+              }
+            }
+          }
+        }
       }
     })
 
