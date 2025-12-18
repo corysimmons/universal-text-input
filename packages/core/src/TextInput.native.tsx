@@ -22,14 +22,12 @@ export interface TextInputProps {
 }
 
 interface ContentSizeChangeEvent {
-  nativeEvent: {
-    height: number;
-  };
-  // Expo modules may also pass height directly
+  nativeEvent?: { height: number };
   height?: number;
 }
 
 const isAndroid = Platform.OS === 'android';
+const LINE_HEIGHT_DP = 20;
 
 export function TextInput({
   value,
@@ -49,10 +47,9 @@ export function TextInput({
   paddingHorizontal: paddingHorizontalProp,
   paddingVertical: paddingVerticalProp,
 }: TextInputProps) {
-  // Flatten style to extract padding values
   const flatStyle = StyleSheet.flatten(style) || {};
 
-  // Extract padding from style, with prop values taking precedence
+  // Extract padding (props take precedence over style)
   const paddingHorizontal = paddingHorizontalProp ??
     (flatStyle.paddingHorizontal as number | undefined) ??
     (flatStyle.padding as number | undefined);
@@ -60,9 +57,7 @@ export function TextInput({
     (flatStyle.paddingVertical as number | undefined) ??
     (flatStyle.padding as number | undefined);
 
-  // Use auto height when:
-  // 1. Single-line with padding (to account for padding in height)
-  // 2. Multiline with minLines/maxLines (auto-grow behavior)
+  // Determine if auto-height is needed
   const hasExplicitHeight = flatStyle.height !== undefined && flatStyle.height !== 'auto';
   const hasAutoGrowMultiline = multiline && (minLines !== undefined || maxLines !== undefined);
   const hasAutoHeight = !hasExplicitHeight && (
@@ -70,38 +65,41 @@ export function TextInput({
     hasAutoGrowMultiline
   );
 
-  // Track content size for Android auto-height
+  // Track content height for Android auto-grow
   const [contentHeight, setContentHeight] = React.useState<number | null>(null);
 
   const handleContentSizeChange = React.useCallback((event: ContentSizeChangeEvent) => {
-    if (isAndroid && hasAutoHeight) {
-      // Handle both event structures: Expo modules may use nativeEvent or direct properties
-      const height = event.nativeEvent?.height ?? event.height;
-      if (height !== undefined && height > 0) {
-        setContentHeight(height);
-      }
+    if (!isAndroid || !hasAutoHeight) return;
+    const height = event.nativeEvent?.height ?? event.height;
+    if (height && height > 0) {
+      setContentHeight(height);
     }
   }, [hasAutoHeight]);
 
-  // Calculate min/max heights based on line count (approximate line height ~20dp + padding)
-  const lineHeightDp = 20;
+  // Calculate height bounds for auto-grow
   const verticalPaddingDp = (paddingVertical ?? 0) * 2;
-  const minHeightFromLines = minLines ? (minLines * lineHeightDp + verticalPaddingDp) : undefined;
-  const maxHeightFromLines = maxLines ? (maxLines * lineHeightDp + verticalPaddingDp) : undefined;
+  const minHeightFromLines = minLines ? minLines * LINE_HEIGHT_DP + verticalPaddingDp : undefined;
+  const maxHeightFromLines = maxLines ? maxLines * LINE_HEIGHT_DP + verticalPaddingDp : undefined;
 
-  // On Android with auto height, use the measured content height (clamped for multiline)
-  let androidHeightStyle: { height: number } | undefined;
-  if (isAndroid && hasAutoHeight && contentHeight) {
-    let height = contentHeight;
-    if (hasAutoGrowMultiline) {
-      if (minHeightFromLines) height = Math.max(height, minHeightFromLines);
-      if (maxHeightFromLines) height = Math.min(height, maxHeightFromLines);
+  // Compute Android height style
+  const androidHeightStyle = React.useMemo(() => {
+    if (!isAndroid) return undefined;
+
+    if (hasAutoHeight && contentHeight) {
+      let height = contentHeight;
+      if (hasAutoGrowMultiline) {
+        if (minHeightFromLines) height = Math.max(height, minHeightFromLines);
+        if (maxHeightFromLines) height = Math.min(height, maxHeightFromLines);
+      }
+      return { height };
     }
-    androidHeightStyle = { height };
-  } else if (isAndroid && hasAutoGrowMultiline && minHeightFromLines) {
-    // Set initial height to minLines before content size is reported
-    androidHeightStyle = { height: minHeightFromLines };
-  }
+
+    if (hasAutoGrowMultiline && minHeightFromLines) {
+      return { height: minHeightFromLines };
+    }
+
+    return undefined;
+  }, [contentHeight, hasAutoHeight, hasAutoGrowMultiline, minHeightFromLines, maxHeightFromLines]);
 
   return (
     <UniversalTextInputView

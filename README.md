@@ -1,35 +1,32 @@
 # Universal Text Input
 
-A cross-platform TextInput component for React Native (iOS/Android) and Web with consistent styling, theming support, and native performance.
+A cross-platform TextInput component for React Native and Web with consistent styling, theming, and auto-grow support.
 
 ## Features
 
-- **Universal** - Works on iOS, Android, and Web with a single API
-- **Native Performance** - Uses native text inputs on mobile (not WebView)
-- **Theming** - Built-in light/dark mode support with customizable themes
-- **Consistent API** - Same props work across all platforms
-- **TypeScript** - Full TypeScript support with proper types
+- Works on iOS, Android, and Web
+- Consistent styling across platforms
+- Built-in dark mode support
+- Customizable theming
+- Auto-growing multiline inputs with `minLines`/`maxLines`
+- Proper padding handling on all platforms
 
 ## Installation
 
 ```bash
-npm install universal-text-input
+npm install universal-text-input universal-text-input-expo
 ```
 
-### Expo Projects
-
-After installing, run prebuild to generate native projects:
-
-```bash
-npx expo prebuild
-```
+For Expo projects, you'll need to rebuild your native app after installing.
 
 ## Usage
 
+### Basic Input
+
 ```tsx
 import { TextInput } from 'universal-text-input';
 
-function MyComponent() {
+function App() {
   const [value, setValue] = useState('');
 
   return (
@@ -40,37 +37,6 @@ function MyComponent() {
     />
   );
 }
-```
-
-### Dark Mode
-
-```tsx
-import { TextInput } from 'universal-text-input';
-
-function MyComponent() {
-  const [value, setValue] = useState('');
-  const isDark = useColorScheme() === 'dark';
-
-  return (
-    <TextInput
-      value={value}
-      onChangeText={setValue}
-      placeholder="Enter text..."
-      dark={isDark}
-    />
-  );
-}
-```
-
-### Multiline
-
-```tsx
-<TextInput
-  value={value}
-  onChangeText={setValue}
-  placeholder="Enter multiple lines..."
-  multiline
-/>
 ```
 
 ### Password Input
@@ -84,46 +50,55 @@ function MyComponent() {
 />
 ```
 
-### Disabled State
+### Multiline with Auto-Grow
 
 ```tsx
 <TextInput
-  value="This input is disabled"
-  editable={false}
+  value={text}
+  onChangeText={setText}
+  placeholder="Enter multiple lines..."
+  multiline
+  minLines={3}  // Start at 3 lines tall
+  maxLines={6}  // Grow up to 6 lines, then scroll
 />
 ```
 
-## Props
+### Dark Mode
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `value` | `string` | - | The value of the text input |
-| `onChangeText` | `(text: string) => void` | - | Callback when text changes |
-| `placeholder` | `string` | - | Placeholder text |
-| `onFocus` | `() => void` | - | Callback when input is focused |
-| `onBlur` | `() => void` | - | Callback when input loses focus |
-| `editable` | `boolean` | `true` | Whether the input is editable |
-| `secureTextEntry` | `boolean` | `false` | Hide text for password input |
-| `multiline` | `boolean` | `false` | Allow multiple lines of text |
-| `autoFocus` | `boolean` | `false` | Auto-focus on mount |
-| `dark` | `boolean` | `false` | Enable dark mode styling |
-| `style` | `StyleProp<ViewStyle>` | - | Custom styles (native only) |
-| `className` | `string` | - | CSS class name (web only) |
-| `theme` | `TextInputTheme` | - | Custom theme overrides (web only) |
+```tsx
+<TextInput
+  value={value}
+  onChangeText={setValue}
+  dark={isDarkMode}
+/>
+```
 
-## Theming (Web)
+### Custom Styling
 
-You can customize the appearance by providing a custom theme:
+```tsx
+<TextInput
+  value={value}
+  onChangeText={setValue}
+  style={{
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+    borderRadius: 12,
+  }}
+/>
+```
+
+### Custom Theme
 
 ```tsx
 import { TextInput, createTheme } from 'universal-text-input';
 
 const customTheme = createTheme({
-  backgroundColor: '#f0f0f0',
-  borderColor: '#ccc',
-  borderRadius: 8,
-  color: '#333',
-  focusColor: '#007bff',
+  backgroundColor: '#f0f9ff',
+  borderColor: '#0ea5e9',
+  focusColor: '#0284c7',
+  borderRadius: 12,
 });
 
 <TextInput
@@ -133,58 +108,89 @@ const customTheme = createTheme({
 />
 ```
 
-### Theme Properties
+## Props
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `backgroundColor` | `string` | Background color (light mode) |
-| `backgroundColorDark` | `string` | Background color (dark mode) |
-| `borderColor` | `string` | Border color (light mode) |
-| `borderColorDark` | `string` | Border color (dark mode) |
-| `borderRadius` | `number` | Border radius in pixels |
-| `color` | `string` | Text color (light mode) |
-| `colorDark` | `string` | Text color (dark mode) |
-| `placeholderColor` | `string` | Placeholder color (light mode) |
-| `placeholderColorDark` | `string` | Placeholder color (dark mode) |
-| `focusColor` | `string` | Focus ring color (light mode) |
-| `focusColorDark` | `string` | Focus ring color (dark mode) |
-| `fontSize` | `number` | Font size in pixels |
-| `height` | `number` | Input height in pixels |
-| `fontFamily` | `string` | Font family |
-| `disabledBackgroundColor` | `string` | Disabled background (light) |
-| `disabledBackgroundColorDark` | `string` | Disabled background (dark) |
-| `disabledBorderColor` | `string` | Disabled border (light) |
-| `disabledBorderColorDark` | `string` | Disabled border (dark) |
-| `disabledColor` | `string` | Disabled text color (light) |
-| `disabledColorDark` | `string` | Disabled text color (dark) |
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `string` | - | Controlled input value |
+| `defaultValue` | `string` | - | Uncontrolled default value |
+| `placeholder` | `string` | - | Placeholder text |
+| `onChangeText` | `(text: string) => void` | - | Called when text changes |
+| `onFocus` | `() => void` | - | Called when input gains focus |
+| `onBlur` | `() => void` | - | Called when input loses focus |
+| `style` | `StyleProp<ViewStyle>` | - | Style object (supports RN style arrays) |
+| `editable` | `boolean` | `true` | Whether input is editable |
+| `secureTextEntry` | `boolean` | `false` | Hide text (password input) |
+| `multiline` | `boolean` | `false` | Allow multiple lines |
+| `minLines` | `number` | - | Minimum lines for auto-grow textarea |
+| `maxLines` | `number` | - | Maximum lines before scrolling |
+| `autoFocus` | `boolean` | `false` | Auto-focus on mount |
+| `dark` | `boolean` | `false` | Enable dark mode styling |
+| `theme` | `TextInputTheme` | - | Custom theme overrides |
 
-## Platform-Specific Behavior
+### Native-only Props
 
-### Web
-- Uses `@base-ui-components/react` for the input component
-- Supports `className` and `theme` props for styling
-- Multiline uses native `<textarea>` element
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `paddingHorizontal` | `number` | - | Horizontal padding (takes precedence over style) |
+| `paddingVertical` | `number` | - | Vertical padding (takes precedence over style) |
 
-### iOS
-- Uses native `UITextField` for single-line input
-- Uses native `UITextView` for multiline input
-- Full native keyboard and input accessory support
+### Web-only Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `className` | `string` | - | CSS class name |
+
+## Theme Properties
+
+```typescript
+interface TextInputTheme {
+  backgroundColor?: string;
+  backgroundColorDark?: string;
+  borderColor?: string;
+  borderColorDark?: string;
+  borderRadius?: number;
+  color?: string;
+  colorDark?: string;
+  placeholderColor?: string;
+  placeholderColorDark?: string;
+  focusColor?: string;
+  focusColorDark?: string;
+  fontSize?: number;
+  height?: number;
+  fontFamily?: string;
+  disabledBackgroundColor?: string;
+  disabledBackgroundColorDark?: string;
+  disabledBorderColor?: string;
+  disabledBorderColorDark?: string;
+  disabledColor?: string;
+  disabledColorDark?: string;
+}
+```
+
+## Auto-Grow Behavior
+
+When using `minLines` and/or `maxLines` with `multiline`:
+
+- The textarea starts at `minLines` height
+- As the user types, it grows to accommodate content
+- Growth stops at `maxLines`, after which content scrolls
+- If only `minLines` is set, the textarea grows indefinitely
+- If only `maxLines` is set, it starts at 1 line and grows to max
+
+## Platform Notes
 
 ### Android
-- Uses native `EditText` component
-- Full native keyboard support
-- Proper text selection and clipboard support
+- Uses a custom native view for proper padding and height calculation
+- Content size changes are reported to JS for auto-grow behavior
 
-## Requirements
+### iOS
+- Uses native UITextField/UITextView with proper padding support
+- Height is managed by React Native layout system
 
-- React 18.0.0 or higher
-- For native: Expo SDK 54+ and React Native 0.81+
-- For web: Any modern browser
-
-## Packages
-
-- **`universal-text-input`** - The main package (includes native module automatically)
-- **`universal-text-input-expo`** - Native Expo module (installed as dependency, no need to install separately)
+### Web
+- Uses native `<input>` and `<textarea>` elements
+- Auto-grow uses `scrollHeight` measurement for accurate sizing
 
 ## License
 

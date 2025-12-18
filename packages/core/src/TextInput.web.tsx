@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Input } from '@base-ui-components/react/input';
 import { TextInputTheme, defaultTheme } from './theme';
 
-// Simplified style type for web - we only need the properties we actually use
+// Simplified style type for web - only properties we actually use
 interface WebViewStyle {
   height?: string | number;
   padding?: string | number;
@@ -17,7 +17,6 @@ interface WebViewStyle {
   borderRadius?: string | number;
 }
 
-// Use a generic style type that's compatible with both RN and web
 type StyleValue = WebViewStyle | null | undefined | false | readonly StyleValue[];
 
 export interface TextInputProps {
@@ -39,13 +38,44 @@ export interface TextInputProps {
   theme?: TextInputTheme;
 }
 
-// Helper to flatten style arrays into a single object
+/** Flatten style arrays into a single object */
 function flattenStyle(style: StyleValue): WebViewStyle {
   if (!style) return {};
   if (Array.isArray(style)) {
     return style.reduce<WebViewStyle>((acc, s) => ({ ...acc, ...flattenStyle(s) }), {});
   }
   return style as WebViewStyle;
+}
+
+/** Get line height in pixels from element's computed style */
+function getLineHeightPx(element: HTMLElement): number {
+  const computedStyle = window.getComputedStyle(element);
+  const lineHeight = parseFloat(computedStyle.lineHeight);
+  if (isNaN(lineHeight) || lineHeight === 0) {
+    // Fallback for 'normal' line-height
+    const fontSize = parseFloat(computedStyle.fontSize) || 16;
+    return fontSize * 1.5;
+  }
+  return lineHeight;
+}
+
+/** Calculate auto-grow height bounds from computed style */
+function getAutoGrowBounds(
+  element: HTMLElement,
+  minLines: number | undefined,
+  maxLines: number | undefined
+): { minPx: number; maxPx: number } {
+  const computedStyle = window.getComputedStyle(element);
+  const lineHeightPx = getLineHeightPx(element);
+  // scrollHeight includes padding but not border, so only add padding here
+  const verticalPadding =
+    (parseFloat(computedStyle.paddingTop) || 0) +
+    (parseFloat(computedStyle.paddingBottom) || 0);
+
+  return {
+    minPx: minLines ? minLines * lineHeightPx + verticalPadding : 0,
+    maxPx: maxLines ? maxLines * lineHeightPx + verticalPadding : Infinity,
+  };
 }
 
 export function TextInput({
@@ -66,20 +96,55 @@ export function TextInput({
   dark = false,
   theme: themeProp,
 }: TextInputProps) {
-  const theme = { ...defaultTheme, ...themeProp };
+  // Memoize theme to avoid spreading on every render
+  const theme = React.useMemo(
+    () => (themeProp ? { ...defaultTheme, ...themeProp } : defaultTheme),
+    [themeProp]
+  );
+
   const flatStyle = flattenStyle(style);
 
-  // Extract relevant style properties
-  const height = flatStyle.height;
+  // Extract style properties
   const paddingHorizontal = flatStyle.paddingHorizontal ?? flatStyle.padding;
   const paddingVertical = flatStyle.paddingVertical ?? flatStyle.padding;
-  const paddingLeft = flatStyle.paddingLeft ?? paddingHorizontal;
-  const paddingRight = flatStyle.paddingRight ?? paddingHorizontal;
-  const paddingTop = flatStyle.paddingTop ?? paddingVertical;
-  const paddingBottom = flatStyle.paddingBottom ?? paddingVertical;
-  const borderWidth = flatStyle.borderWidth;
-  const borderColor = flatStyle.borderColor;
-  const borderRadius = flatStyle.borderRadius;
+
+  // Memoize color resolver
+  const getColor = React.useCallback(
+    (light: string | undefined, dark_: string | undefined, disabledLight: string | undefined, disabledDark: string | undefined) =>
+      !editable ? (dark ? disabledDark : disabledLight) : (dark ? dark_ : light),
+    [editable, dark]
+  );
+
+  const focusColor = dark ? theme.focusColorDark : theme.focusColor;
+
+  // Build base style object
+  const baseStyle: React.CSSProperties = React.useMemo(() => ({
+    boxSizing: 'border-box',
+    paddingLeft: flatStyle.paddingLeft ?? paddingHorizontal ?? '0.875rem',
+    paddingRight: flatStyle.paddingRight ?? paddingHorizontal ?? '0.875rem',
+    paddingTop: flatStyle.paddingTop ?? paddingVertical,
+    paddingBottom: flatStyle.paddingBottom ?? paddingVertical,
+    margin: 0,
+    border: `${flatStyle.borderWidth ?? 1}px solid ${flatStyle.borderColor ?? getColor(theme.borderColor, theme.borderColorDark, theme.disabledBorderColor, theme.disabledBorderColorDark)}`,
+    width: '100%',
+    height: flatStyle.height ?? theme.height,
+    borderRadius: flatStyle.borderRadius ?? theme.borderRadius,
+    fontFamily: theme.fontFamily,
+    fontSize: theme.fontSize,
+    fontWeight: 'normal',
+    backgroundColor: getColor(theme.backgroundColor, theme.backgroundColorDark, theme.disabledBackgroundColor, theme.disabledBackgroundColorDark),
+    color: getColor(theme.color, theme.colorDark, theme.disabledColor, theme.disabledColorDark),
+  }), [flatStyle, paddingHorizontal, paddingVertical, theme, getColor]);
+
+  // Focus handlers
+  const handleFocus = React.useCallback((e: React.FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.outline = `1px solid ${focusColor}`;
+    e.currentTarget.style.outlineOffset = '-1px';
+  }, [focusColor]);
+
+  const handleBlur = React.useCallback((e: React.FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.outline = 'none';
+  }, []);
 
   const handleChange = React.useCallback(
     (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -88,137 +153,56 @@ export function TextInput({
     [onChangeText]
   );
 
-  const getColor = (lightColor: string | undefined, darkColor: string | undefined, disabledLight: string | undefined, disabledDark: string | undefined) => {
-    if (!editable) {
-      return dark ? disabledDark : disabledLight;
-    }
-    return dark ? darkColor : lightColor;
-  };
-
-  const themeBorderColor = getColor(theme.borderColor, theme.borderColorDark, theme.disabledBorderColor, theme.disabledBorderColorDark);
-  const resolvedBorderWidth = borderWidth ?? 1;
-  const resolvedBorderColor = borderColor ?? themeBorderColor;
-
-  // Convert style values to CSS-compatible format
-  const toCssValue = (val: string | number | undefined): string | number | undefined => {
-    if (val === undefined) return undefined;
-    return val;
-  };
-
-  const baseStyle: React.CSSProperties = {
-    boxSizing: 'border-box',
-    paddingLeft: toCssValue(paddingLeft) ?? '0.875rem',
-    paddingRight: toCssValue(paddingRight) ?? '0.875rem',
-    paddingTop: toCssValue(paddingTop),
-    paddingBottom: toCssValue(paddingBottom),
-    margin: 0,
-    border: `${resolvedBorderWidth}px solid ${resolvedBorderColor}`,
-    width: '100%',
-    height: toCssValue(height) ?? theme.height,
-    borderRadius: toCssValue(borderRadius) ?? theme.borderRadius,
-    fontFamily: theme.fontFamily,
-    fontSize: theme.fontSize,
-    fontWeight: 'normal',
-    backgroundColor: getColor(theme.backgroundColor, theme.backgroundColorDark, theme.disabledBackgroundColor, theme.disabledBackgroundColorDark),
-    color: getColor(theme.color, theme.colorDark, theme.disabledColor, theme.disabledColorDark),
-  };
-
-  // Calculate line-based heights (assuming ~1.5em line height)
-  const lineHeightEm = 1.5; // em units
-  const hasAutoGrowLines = minLines !== undefined || maxLines !== undefined;
-  const minHeight = minLines ? `${minLines * lineHeightEm}em` : (height ? undefined : '5rem');
-  const maxHeight = maxLines ? `${maxLines * lineHeightEm}em` : undefined;
-
-  const textareaStyle: React.CSSProperties = {
-    ...baseStyle,
-    height: toCssValue(height) ?? 'auto',
-    minHeight: hasAutoGrowLines ? undefined : minHeight, // Auto-grow handles this via JS
-    maxHeight: hasAutoGrowLines ? undefined : maxHeight,
-    resize: hasAutoGrowLines ? 'none' : 'vertical',
-    overflow: 'auto',
-  };
-
-  const focusColor = dark ? theme.focusColorDark : theme.focusColor;
-
-  // Ref and state for auto-growing textarea
+  // Auto-grow textarea state
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const [textareaHeight, setTextareaHeight] = React.useState<number | undefined>(undefined);
-
-  // Helper to calculate line heights in pixels
-  const getLineHeightPx = React.useCallback((element: HTMLElement) => {
-    const computedStyle = window.getComputedStyle(element);
-    let lineHeightPx = parseFloat(computedStyle.lineHeight);
-    if (isNaN(lineHeightPx) || lineHeightPx === 0) {
-      // Fallback: use font size * 1.5 if line-height is 'normal' or invalid
-      const fontSize = parseFloat(computedStyle.fontSize) || 16;
-      lineHeightPx = fontSize * 1.5;
-    }
-    return lineHeightPx;
-  }, []);
+  const hasAutoGrow = minLines !== undefined || maxLines !== undefined;
 
   // Set initial height on mount for auto-grow textareas
   React.useLayoutEffect(() => {
-    if (textareaRef.current && (minLines !== undefined || maxLines !== undefined)) {
-      const textarea = textareaRef.current;
-      const computedStyle = window.getComputedStyle(textarea);
-      const lineHeightPx = getLineHeightPx(textarea);
-      const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
-      const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
-      const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
-      const borderBottom = parseFloat(computedStyle.borderBottomWidth) || 0;
-      const extraHeight = paddingTop + paddingBottom + borderTop + borderBottom;
+    if (!textareaRef.current || !hasAutoGrow) return;
 
-      const minPx = minLines ? (minLines * lineHeightPx + extraHeight) : 0;
+    const textarea = textareaRef.current;
+    const { minPx } = getAutoGrowBounds(textarea, minLines, maxLines);
 
-      // Temporarily reset height to measure actual content
-      const originalHeight = textarea.style.height;
-      textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      textarea.style.height = originalHeight;
+    // Measure actual content height
+    const originalHeight = textarea.style.height;
+    textarea.style.height = 'auto';
+    const scrollHeight = textarea.scrollHeight;
+    textarea.style.height = originalHeight;
 
-      setTextareaHeight(Math.max(scrollHeight, minPx));
-    }
-  }, [minLines, maxLines, getLineHeightPx]);
+    setTextareaHeight(Math.max(scrollHeight, minPx));
+  }, [minLines, maxLines, hasAutoGrow]);
 
-  // Auto-grow handler for textarea
+  // Auto-grow change handler
   const handleTextareaChange = React.useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       onChangeText?.(event.target.value);
 
-      // Auto-grow logic
-      if (minLines !== undefined || maxLines !== undefined) {
-        const textarea = event.target;
-        const computedStyle = window.getComputedStyle(textarea);
-        const lineHeightPx = getLineHeightPx(textarea);
-        const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
-        const paddingBottom = parseFloat(computedStyle.paddingBottom) || 0;
-        const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
-        const borderBottom = parseFloat(computedStyle.borderBottomWidth) || 0;
-        const extraHeight = paddingTop + paddingBottom + borderTop + borderBottom;
+      if (!hasAutoGrow) return;
 
-        const minPx = minLines ? (minLines * lineHeightPx + extraHeight) : 0;
-        const maxPx = maxLines ? (maxLines * lineHeightPx + extraHeight) : Infinity;
+      const textarea = event.target;
+      const { minPx, maxPx } = getAutoGrowBounds(textarea, minLines, maxLines);
 
-        // Reset height to auto to get accurate scrollHeight
-        textarea.style.height = 'auto';
-        const scrollHeight = textarea.scrollHeight;
+      // Reset height to measure actual content
+      textarea.style.height = 'auto';
+      const scrollHeight = textarea.scrollHeight;
 
-        let newHeight = Math.max(scrollHeight, minPx);
-        if (maxPx !== Infinity) {
-          newHeight = Math.min(newHeight, maxPx);
-        }
+      // Clamp height between min and max
+      const newHeight = Math.min(Math.max(scrollHeight, minPx), maxPx);
 
-        // Apply the new height immediately to prevent flicker
-        textarea.style.height = `${newHeight}px`;
-        setTextareaHeight(newHeight);
-      }
+      // Apply immediately to prevent flicker
+      textarea.style.height = `${newHeight}px`;
+      setTextareaHeight(newHeight);
     },
-    [onChangeText, minLines, maxLines, getLineHeightPx]
+    [onChangeText, minLines, maxLines, hasAutoGrow]
   );
 
-  if (multiline) {
-    const hasAutoGrow = minLines !== undefined || maxLines !== undefined;
+  // Calculate CSS-based min/max heights for non-auto-grow textareas
+  const lineHeightEm = 1.5;
+  const cssMinHeight = minLines ? `${minLines * lineHeightEm}em` : (flatStyle.height ? undefined : '5rem');
 
+  if (multiline) {
     return (
       <textarea
         ref={textareaRef}
@@ -233,22 +217,16 @@ export function TextInput({
         className={className}
         rows={hasAutoGrow ? undefined : minLines}
         style={{
-          ...textareaStyle,
-          height: hasAutoGrow ? (textareaHeight ?? minHeight) : textareaStyle.height,
-          // Use 'auto' for overflow when maxLines is set (scrollbar appears when needed)
-          // Use 'hidden' when only minLines is set (pure auto-grow, no max)
+          ...baseStyle,
+          height: hasAutoGrow ? (textareaHeight ?? cssMinHeight) : (flatStyle.height ?? 'auto'),
+          minHeight: hasAutoGrow ? undefined : cssMinHeight,
+          maxHeight: hasAutoGrow ? undefined : (maxLines ? `${maxLines * lineHeightEm}em` : undefined),
+          resize: hasAutoGrow ? 'none' : 'vertical',
           overflow: hasAutoGrow ? (maxLines ? 'auto' : 'hidden') : 'auto',
           cursor: editable ? 'text' : 'not-allowed',
-          // @ts-expect-error CSS custom property for focus style
-          '--focus-color': focusColor,
         }}
-        onFocusCapture={(e) => {
-          e.currentTarget.style.outline = `1px solid ${focusColor}`;
-          e.currentTarget.style.outlineOffset = '-1px';
-        }}
-        onBlurCapture={(e) => {
-          e.currentTarget.style.outline = 'none';
-        }}
+        onFocusCapture={handleFocus}
+        onBlurCapture={handleBlur}
       />
     );
   }
@@ -269,13 +247,8 @@ export function TextInput({
         ...baseStyle,
         cursor: editable ? 'text' : 'not-allowed',
       }}
-      onFocusCapture={(e) => {
-        e.currentTarget.style.outline = `1px solid ${focusColor}`;
-        e.currentTarget.style.outlineOffset = '-1px';
-      }}
-      onBlurCapture={(e) => {
-        e.currentTarget.style.outline = 'none';
-      }}
+      onFocusCapture={handleFocus}
+      onBlurCapture={handleBlur}
     />
   );
 }
