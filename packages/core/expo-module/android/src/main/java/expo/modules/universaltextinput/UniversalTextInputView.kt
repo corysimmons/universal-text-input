@@ -7,7 +7,6 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.text.method.PasswordTransformationMethod
 import android.graphics.Typeface
-import android.util.Log
 import android.view.Gravity
 import android.view.View.MeasureSpec
 import expo.modules.kotlin.AppContext
@@ -50,8 +49,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
           textEventMap["text"] = s?.toString() ?: ""
           onChangeText(textEventMap)
         }
-        // Report content size after text changes (for multiline auto-grow)
-        editText.post { reportContentSizeIfNeeded() }
       }
     })
 
@@ -185,7 +182,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
     paddingV = (padding * resources.displayMetrics.density).toInt()
     // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
-    Log.d("UTI", "setPaddingVertical: paddingV=$paddingV, isMultiline=$isMultiline, isSingleLine=${editText.isSingleLine}")
     requestLayout()
     editText.post { reportContentSizeIfNeeded() }
   }
