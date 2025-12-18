@@ -18,8 +18,13 @@ export default function HomeScreen() {
           onChangeText={setText}
           placeholder="Enter some text..."
           dark={isDark}
-          paddingVertical={18}
-          paddingHorizontal={12}
+          style={{
+            paddingHorizontal: 30,
+            paddingVertical: 30,
+            borderWidth: 1,
+            borderColor: isDark ? '#444' : '#ccc',
+            borderRadius: 8,
+          }}
           />
         <Text style={[styles.value, isDark && styles.valueDark]}>Value: {text}</Text>
       </View>
