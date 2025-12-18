@@ -18,15 +18,7 @@ export default function HomeScreen() {
           onChangeText={setText}
           placeholder="Enter some text..."
           dark={isDark}
-          style={{
-            paddingHorizontal: 50,
-            paddingVertical: 20,
-            height: 'auto',
-            borderWidth: 1,
-            borderColor: isDark ? '#444' : '#ccc',
-            borderRadius: 8,
-          }}
-          />
+        />
         <Text style={[styles.value, isDark && styles.valueDark]}>Value: {text}</Text>
       </View>
 
@@ -49,6 +41,13 @@ export default function HomeScreen() {
           placeholder="Enter multiple lines..."
           multiline
           dark={isDark}
+          style={{
+            paddingHorizontal: 50,
+            paddingVertical: 20,
+            borderWidth: 1,
+            borderColor: isDark ? '#444' : '#ccc',
+            borderRadius: 8,
+          }}
         />
       </View>
 

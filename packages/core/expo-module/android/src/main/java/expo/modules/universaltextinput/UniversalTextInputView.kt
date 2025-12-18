@@ -50,6 +50,8 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
           textEventMap["text"] = s?.toString() ?: ""
           onChangeText(textEventMap)
         }
+        // Report content size after text changes (for multiline auto-grow)
+        editText.post { reportContentSizeIfNeeded() }
       }
     })
 
@@ -150,23 +152,29 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
   private var paddingV: Int = 0
 
   private fun reportContentSizeIfNeeded() {
-    // Calculate intrinsic content height: text line height + vertical padding
-    val lineHeight = editText.lineHeight
     val density = resources.displayMetrics.density
+
+    // Calculate intrinsic content height based on text layout
+    val textHeight = if (isMultiline && editText.layout != null) {
+      // For multiline, use the actual text layout height
+      editText.layout.height
+    } else {
+      // For single line, use line height
+      editText.lineHeight
+    }
+
     // Convert back to dp for JS
-    val contentHeight = (lineHeight + paddingV * 2) / density
+    val contentHeight = (textHeight + paddingV * 2) / density
 
     if (contentHeight != lastReportedHeight && contentHeight > 0) {
       lastReportedHeight = contentHeight
       contentSizeMap["height"] = contentHeight
-      Log.d("UTI", "reportContentSizeIfNeeded: lineHeight=$lineHeight, paddingV=$paddingV, contentHeight=$contentHeight")
       onContentSizeChange(contentSizeMap)
     }
   }
 
   fun setPaddingHorizontal(padding: Int) {
     paddingH = (padding * resources.displayMetrics.density).toInt()
-    Log.d("UTI", "setPaddingHorizontal: padding=$padding, paddingH=$paddingH")
     // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
     requestLayout()
@@ -175,9 +183,9 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
   fun setPaddingVertical(padding: Int) {
     paddingV = (padding * resources.displayMetrics.density).toInt()
-    Log.d("UTI", "setPaddingVertical: padding=$padding, paddingV=$paddingV")
     // Apply all padding directly to EditText - NoPaddingEditText handles clip rect
     editText.setPadding(paddingH, paddingV, paddingH, paddingV)
+    Log.d("UTI", "setPaddingVertical: paddingV=$paddingV, isMultiline=$isMultiline, isSingleLine=${editText.isSingleLine}")
     requestLayout()
     editText.post { reportContentSizeIfNeeded() }
   }
@@ -189,14 +197,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
 
   override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
     val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-    val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-    val modeName = when (heightMode) {
-      MeasureSpec.EXACTLY -> "EXACTLY"
-      MeasureSpec.AT_MOST -> "AT_MOST"
-      MeasureSpec.UNSPECIFIED -> "UNSPECIFIED"
-      else -> "UNKNOWN"
-    }
-    Log.d("UTI", "onMeasure: heightMode=$modeName, heightSize=$heightSize, paddingV=$paddingV")
 
     // Only calculate custom height when height is not explicitly specified (i.e., height: 'auto')
     if (heightMode == MeasureSpec.UNSPECIFIED || heightMode == MeasureSpec.AT_MOST) {
@@ -207,7 +207,7 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
       val editTextHeightSpec = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
       editText.measure(editTextWidthSpec, editTextHeightSpec)
 
-      // The EditText reports zero compound padding, so we need to add vertical padding explicitly
+      // The EditText reports zero compound padding for single-line, so we need to add vertical padding explicitly
       val textHeight = editText.measuredHeight
       val totalHeight = textHeight + paddingV * 2
 
@@ -217,8 +217,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
         totalHeight
       }
 
-      Log.d("UTI", "onMeasure: textHeight=$textHeight, totalHeight=$totalHeight, finalHeight=$finalHeight")
-
       setMeasuredDimension(widthSize, finalHeight)
 
       // Re-measure EditText to fill the final height
@@ -227,7 +225,6 @@ class UniversalTextInputView(context: Context, appContext: AppContext) : ExpoVie
         MeasureSpec.makeMeasureSpec(finalHeight, MeasureSpec.EXACTLY)
       )
     } else {
-      Log.d("UTI", "onMeasure: using super (EXACTLY mode)")
       super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
   }

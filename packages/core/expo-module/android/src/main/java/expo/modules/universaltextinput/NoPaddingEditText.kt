@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.EditText
 
 /**
@@ -11,6 +12,12 @@ import android.widget.EditText
  *
  * Android's EditText clips text to (viewHeight - paddingTop - paddingBottom).
  * This class overrides the clip rect to use full view bounds for text rendering.
+ *
+ * For single-line inputs with CENTER_VERTICAL gravity, we report zero padding
+ * so gravity handles vertical centering correctly.
+ *
+ * For multiline inputs with TOP gravity, we return actual padding so text
+ * is properly offset from the top edge.
  */
 class NoPaddingEditText @JvmOverloads constructor(
     context: Context,
@@ -25,11 +32,16 @@ class NoPaddingEditText @JvmOverloads constructor(
         includeFontPadding = false
     }
 
-    // Report zero vertical padding to the text layout system
-    override fun getCompoundPaddingTop(): Int = 0
-    override fun getCompoundPaddingBottom(): Int = 0
-    override fun getExtendedPaddingTop(): Int = 0
-    override fun getExtendedPaddingBottom(): Int = 0
+    // For single-line, report zero padding so gravity centers text correctly
+    // For multiline, return actual padding so text is offset from top
+    override fun getCompoundPaddingTop(): Int {
+        val result = if (isSingleLine) 0 else paddingTop
+        Log.d("UTI", "getCompoundPaddingTop: isSingleLine=$isSingleLine, paddingTop=$paddingTop, returning=$result")
+        return result
+    }
+    override fun getCompoundPaddingBottom(): Int = if (isSingleLine) 0 else paddingBottom
+    override fun getExtendedPaddingTop(): Int = if (isSingleLine) 0 else paddingTop
+    override fun getExtendedPaddingBottom(): Int = if (isSingleLine) 0 else paddingBottom
 
     override fun onDraw(canvas: Canvas) {
         // Save the canvas state

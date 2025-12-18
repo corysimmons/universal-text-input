@@ -54,22 +54,23 @@ export function TextInput({
     (flatStyle.paddingVertical as number | undefined) ??
     (flatStyle.padding as number | undefined);
 
-  // Check if height is explicitly set to 'auto'
-  const hasAutoHeight = flatStyle.height === 'auto';
+  // Use auto height when explicitly set to 'auto', or when there's vertical padding and no explicit height
+  // This ensures Android correctly accounts for padding in the height calculation
+  // Multiline inputs should NOT auto-height - they have fixed height and scroll internally
+  const hasExplicitHeight = flatStyle.height !== undefined && flatStyle.height !== 'auto';
+  const hasAutoHeight = !multiline && !hasExplicitHeight && (flatStyle.height === 'auto' || paddingVertical !== undefined);
 
   // Track content size for Android auto-height
   const [contentHeight, setContentHeight] = React.useState<number | null>(null);
 
   const handleContentSizeChange = React.useCallback((event: ContentSizeChangeEvent) => {
-    console.log('[UTI] onContentSizeChange:', event);
     if (isAndroid && hasAutoHeight) {
       const { height } = event.nativeEvent;
-      console.log('[UTI] Setting content height:', height);
       setContentHeight(height);
     }
   }, [hasAutoHeight]);
 
-  // On Android with auto height, use the measured content height
+  // On Android with auto height (single-line only), use the measured content height
   const androidHeightStyle = isAndroid && hasAutoHeight && contentHeight
     ? { height: contentHeight }
     : undefined;
